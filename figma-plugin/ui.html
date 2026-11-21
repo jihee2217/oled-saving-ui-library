@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script>
+    try { window.localStorage.getItem('x') } catch (e) {
+      const store = new Map()
+      const shim = {
+        getItem: (k) => store.has(k) ? store.get(k) : null,
+        setItem: (k, v) => { store.set(k, String(v)) },
+        removeItem: (k) => { store.delete(k) },
+        clear: () => { store.clear() },
+        key: (i) => Array.from(store.keys())[i] ?? null,
+        get length() { return store.size },
+      }
+      Object.defineProperty(window, 'localStorage', { value: shim, configurable: true })
+    }
+  </script>
+  <style>
+    html, body { margin: 0; padding: 0; height: auto; min-height: 0; }
+    body { display: block; font-family: var(--font-family, inherit); }
+    #plugin-root { height: auto; }
+    body > #plugin-root > fig-footer {
+      background-color: var(--figma-color-bg);
+      box-shadow: inset 0 1px 0 0 var(--figma-color-border);
+      border-radius: 0 0 var(--radius-large) var(--radius-large);
+    }
+    .hint { color: var(--figma-color-text-secondary); font-size: 11px; line-height: 16px; margin: 0; }
+    .file-row { display: flex; gap: 8px; align-items: center; }
+    .file-name { color: var(--figma-color-text); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    #log { margin: 0; padding: 0; list-style: none; font-size: 11px; line-height: 16px; color: var(--figma-color-text-secondary); max-height: 160px; overflow: auto; }
+    #log li { padding: 2px 0; }
+    #status[data-tone="error"] { color: var(--figma-color-text-danger); }
+    #status[data-tone="ok"] { color: var(--figma-color-text-success); }
+    #status { font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div id="plugin-root">
+    <fig-content>
+      <fig-field>
+        <label>토큰 묶음</label>
+        <fig-input-file id="file" label="파일 고르기" accepts=".zip,.json,application/zip,application/json" multiple variant="secondary"></fig-input-file>
+        <span class="file-name" id="file-name">선택한 파일 없음</span>
+      </fig-field>
+      <p class="hint">사이트 계산기의 「Figma 토큰 내보내기」로 받은 .zip, 또는 그 안의 .tokens.json 파일들을 고르세요.</p>
+
+      <fig-group name="가져올 것">
+        <fig-field direction="horizontal">
+          <label>변수</label>
+          <fig-switch id="do-variables" checked></fig-switch>
+        </fig-field>
+        <fig-field direction="horizontal">
+          <label>텍스트 스타일</label>
+          <fig-switch id="do-text" checked></fig-switch>
+        </fig-field>
+        <fig-field direction="horizontal">
+          <label>그림자 스타일</label>
+          <fig-switch id="do-effects" checked></fig-switch>
+        </fig-field>
+      </fig-group>
+
+      <fig-field>
+        <label>색 모드</label>
+        <fig-dropdown id="color-mode" value="all">
+          <option value="all" selected>6개 모두 (Professional · Education 이상)</option>
+          <option value="Dark-Standard">Dark-Standard</option>
+          <option value="Dark-Medium">Dark-Medium</option>
+          <option value="Dark-High">Dark-High</option>
+          <option value="Light-Standard">Light-Standard</option>
+          <option value="Light-Medium">Light-Medium</option>
+          <option value="Light-High">Light-High</option>
+        </fig-dropdown>
+      </fig-field>
+      <p class="hint">Starter 플랜은 컬렉션당 모드가 1개라 하나만 고르세요. 다른 모드로 바꾸려면 그 모드를 골라 다시 실행하면 같은 변수의 값이 바뀌어요.</p>
+
+      <ul id="log"></ul>
+    </fig-content>
+    <fig-footer sticky>
+      <label id="status">파일을 고르세요</label>
+      <fig-button id="run" type="submit">가져오기</fig-button>
+    </fig-footer>
+  </div>
+
+  <script>
+    // 스크립트 오류가 나면 상태 줄에 보이게 한다(Figma가 주입하는 PropsKit 등과 이름이 겹쳐도 원인을 알 수 있게).
+    window.addEventListener('error', (e) => {
+      const el = document.getElementById('status')
+      if (el) { el.textContent = '패널 오류: ' + (e.message || e.error || '알 수 없음'); el.dataset.tone = 'error' }
+    })
+    // 전역 이름이 Figma 쪽 스크립트와 겹치지 않도록 전부 함수 안에 둔다.
+    ;(function () {
+      function post(message) { parent.postMessage({ pluginMessage: message }, '*') }
+      const $ = (id) => document.getElementById(id)
+      let files = null
+
+      function setStatus(text, tone) {
+        const el = $('status')
+        el.textContent = text
+        el.dataset.tone = tone || 'info'
+      }
+      function addLog(text) {
+        const li = document.createElement('li')
+        li.textContent = text
+        $('log').appendChild(li)
+      }
+      function isOn(el) {
+        if (typeof el.checked === 'boolean') return el.checked
+        const v = el.getAttribute('checked')
+        return v !== null && v !== 'false'
+      }
+
+      // ── zip 읽기: 중앙 디렉터리 기준(Finder 등 데이터 디스크립터를 쓰는 zip도 읽힘). STORE · DEFLATE 지원.
+      async function inflateRaw(bytes) {
+        if (typeof DecompressionStream === 'undefined') throw new Error('이 환경은 압축된 zip을 풀 수 없어요. 압축을 풀어 .tokens.json 파일들을 직접 고르세요.')
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
+        return new Uint8Array(await new Response(stream).arrayBuffer())
+      }
+      async function readZip(buffer) {
+        const bytes = new Uint8Array(buffer)
+        const view = new DataView(buffer)
+        let end = -1
+        for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+          if (view.getUint32(i, true) === 0x06054b50) { end = i; break }
+        }
+        if (end < 0) throw new Error('zip 파일이 아니에요')
+        const count = view.getUint16(end + 10, true)
+        let at = view.getUint32(end + 16, true)
+        const dec = new TextDecoder('utf-8')
+        const out = {}
+        for (let n = 0; n < count; n++) {
+          if (view.getUint32(at, true) !== 0x02014b50) throw new Error('zip 목록이 손상됐어요')
+          const method = view.getUint16(at + 10, true)
+          const size = view.getUint32(at + 20, true)
+          const nameLen = view.getUint16(at + 28, true)
+          const extraLen = view.getUint16(at + 30, true)
+          const commentLen = view.getUint16(at + 32, true)
+          const local = view.getUint32(at + 42, true)
+          const name = dec.decode(bytes.subarray(at + 46, at + 46 + nameLen))
+          at += 46 + nameLen + extraLen + commentLen
+          if (name.endsWith('/') || name.startsWith('__MACOSX/')) continue
+          const base = name.split('/').pop()
+          if (!base.endsWith('.tokens.json')) continue
+          const start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true)
+          const raw = bytes.subarray(start, start + size)
+          const data = method === 0 ? raw : method === 8 ? await inflateRaw(raw) : null
+          if (!data) throw new Error(`${name}: 지원하지 않는 압축 방식`)
+          out[base] = dec.decode(data)
+        }
+        return out
+      }
+
+      function describe(found) {
+        const names = Object.keys(found)
+        const modes = names.filter(n => /^(Dark|Light)-(Standard|Medium|High)\.tokens\.json$/.test(n))
+        const others = names.filter(n => !modes.includes(n)).map(n => n.replace('.tokens.json', ''))
+        return `색 모드 ${modes.length}개 · ${others.join(' · ') || '기타 없음'}`
+      }
+
+      // PropsKit fig-input-file에서 고른 파일을 꺼낸다. 버전에 따라 detail.files · 요소의 files · 안쪽 input 중 어디에 올지 몰라 모두 본다.
+      function pickedFiles(event) {
+        const el = $('file')
+        const d = event && event.detail
+        const candidates = [
+          d && d.files, d && d.file ? [d.file] : null, el.files,
+          el.querySelector && el.querySelector('input[type="file"]') ? el.querySelector('input[type="file"]').files : null,
+          el.shadowRoot && el.shadowRoot.querySelector('input[type="file"]') ? el.shadowRoot.querySelector('input[type="file"]').files : null,
+        ]
+        for (const c of candidates) { if (c && c.length) return Array.from(c) }
+        return []
+      }
+
+      let loadedKey = ''
+      let loading = null
+      async function loadFiles(list) {
+        const key = list.map(f => `${f.name}:${f.size}:${f.lastModified}`).join('|')
+        if (key === loadedKey && files) return files
+        setStatus('파일을 읽는 중…', 'info')
+        const found = {}
+        for (const file of list) {
+          if (file.name.toLowerCase().endsWith('.zip')) Object.assign(found, await readZip(await file.arrayBuffer()))
+          else if (file.name.endsWith('.json')) found[file.name] = await file.text()
+        }
+        if (!Object.keys(found).length) throw new Error('.tokens.json 파일을 찾지 못했어요')
+        files = found
+        loadedKey = key
+        $('file-name').textContent = list.length === 1 ? list[0].name : `파일 ${list.length}개`
+        $('log').innerHTML = ''
+        addLog(describe(found))
+        setStatus('준비됐어요 — 가져오기를 누르세요', 'info')
+        return found
+      }
+
+      async function onPick(event) {
+        const list = pickedFiles(event)
+        if (!list.length) return
+        try { loading = loadFiles(list); await loading } catch (e) {
+          files = null; loadedKey = ''
+          $('file-name').textContent = '선택한 파일 없음'
+          setStatus(String(e.message || e), 'error')
+        } finally { loading = null }
+      }
+      $('file').addEventListener('change', onPick)
+      $('file').addEventListener('input', onPick)
+
+      let running = false
+      $('run').addEventListener('click', async () => {
+        if (running) return
+        try {
+          if (loading) await loading
+          if (!files) {
+            const list = pickedFiles(null)
+            if (!list.length) { setStatus('먼저 토큰 묶음 파일을 고르세요', 'error'); return }
+            await loadFiles(list)
+          }
+        } catch (e) { setStatus(String(e.message || e), 'error'); return }
+        const doVariables = isOn($('do-variables')), doText = isOn($('do-text')), doEffects = isOn($('do-effects'))
+        if (!doVariables && !doText && !doEffects) { setStatus('가져올 것을 하나 이상 켜세요', 'error'); return }
+        running = true
+        $('log').innerHTML = ''
+        setStatus('가져오는 중…', 'info')
+        post({ type: 'import', files, colorMode: $('color-mode').value || 'all', doVariables, doText, doEffects })
+      })
+
+      window.onmessage = (event) => {
+        const msg = event.data && event.data.pluginMessage
+        if (!msg) return
+        if (msg.type === 'status') setStatus(msg.text, msg.tone)
+        if (msg.type === 'log') addLog(msg.text)
+        if (msg.type === 'done') running = false
+      }
+
+      let last = 0, raf = 0
+      const root = $('plugin-root')
+      new ResizeObserver(() => {
+        if (raf) cancelAnimationFrame(raf)
+        raf = requestAnimationFrame(() => {
+          const h = Math.ceil(root.getBoundingClientRect().height)
+          if (h && h !== last) { last = h; post({ type: 'resize', height: h }) }
+        })
+      }).observe(root)
+    })()
+  </script>
+</body>
+</html>

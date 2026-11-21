@@ -1,0 +1,60 @@
+/**
+ * atoms.css
+ * 리셋 · 루트 글꼴 · 아이콘 바탕 규칙 (아토믹 CSS 계층의 첫 단계)
+ *
+ * 글자 크기 · 굵기는 M3 타입 스케일 토큰(tokens.css --md-type-*)이 정하고,
+ * 모드별 절감 규칙(굵기 · 아이콘 채움)은 Saving UI 장면에만 적용한다(organisms.css · saving.js, 명세 3.2 · 3.6).
+ * 2026-10-17 정리: 옛 프로파일 v1의 .preview-root 제목 · 본문 굵기 규칙과 선 아이콘(stroke) 규칙을 지웠다.
+ */
+
+/* ─── 기본 리셋 ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── 루트 타이포그래피 ─── */
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── 견본 영역(본문) — 다른 CSS가 .preview-root를 범위 접두로 쓴다 ─── */
+.preview-root {
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition:
+    background-color var(--transition-slow),
+    color var(--transition-slow);
+}
+
+/* ════════════════════════════════════════
+   아이콘 Atoms
+   ════════════════════════════════════════ */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: inherit;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+/* Material Symbols (Outlined · weight 400 · grade 0 · 24px) — google/material-design-icons 공식 SVG.
+   공식 경로는 채움 도형이므로 선(stroke)으로 그리지 않는다. 채움(FILL 1) 글리프는 경로를 바꿔 쓴다. */
+svg.icon.icon-symbol,
+svg.calc-icon.icon-symbol,
+[data-style] :is(svg.icon.icon-symbol, svg.calc-icon.icon-symbol),
+html[data-style] .preview-root svg.icon.icon-symbol { fill: currentColor; stroke: none; }
+
+/* 내비게이션·토글 아이콘: 선택 시 채움(FILL 1) 글리프로 바꾼다 (M3 active indicator 규칙). */
+:is(.btn-icon) svg.icon-selected { display: none; }
+:is(.btn-icon):is(.active, [aria-current="page"], [aria-pressed="true"]) svg.icon-selected { display: inline-flex; }
+:is(.btn-icon):is(.active, [aria-current="page"], [aria-pressed="true"]) svg.icon-unselected { display: none; }

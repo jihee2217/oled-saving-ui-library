@@ -1,0 +1,602 @@
+/* ════════════════════════════════════════
+   라이브러리 셸 — 내비게이션 레일 · 메뉴 · 본문 · 계산기 (2026-09-28)
+   m3.material.io처럼 최상위 구성(Styles · Components · Templates · Pages)을 왼쪽 레일에 두고,
+   그 옆 좁은 사이드바에 페이지별 하위 메뉴, 본문 오른쪽 열에 BW Index 계산기를 둔다. 각 열은 따로 스크롤한다.
+   하위 메뉴가 없는 구성(Templates · Pages)은 메뉴 열을 접는다.
+   ════════════════════════════════════════ */
+.library-page .pl-shell {
+  --pl-rail-w: 80px;
+  --pl-side-w: 240px;
+  --pl-calc-w: 360px;
+  display: grid;
+  grid-template-columns: var(--pl-rail-w) var(--pl-side-w) minmax(0, 1fr) var(--pl-calc-w);
+  grid-template-areas: "rail menu main calc";
+  height: 100vh;
+  overflow: hidden;
+}
+.library-page .pl-shell:has(.pl-sidebar[data-no-menu]) {
+  grid-template-columns: var(--pl-rail-w) minmax(0, 1fr) var(--pl-calc-w);
+  grid-template-areas: "rail main calc";
+}
+.pl-rail { grid-area: rail; }
+.pl-sidebar { grid-area: menu; }
+.library-page #library-preview { grid-area: main; }
+.pl-side-calc { grid-area: calc; }
+
+/* 내비게이션 레일 — M3 Navigation rail(아이콘 24 · 활성 표시 56×32 알약 · 라벨 label-medium) */
+.pl-rail {
+  display: flex; flex-direction: column; align-items: center; gap: var(--md-space-150);
+  padding: var(--md-space-150) 0;
+  background: var(--bg);
+  overflow-y: auto;
+}
+.pl-rail-tabs { display: flex; flex-direction: column; align-items: center; gap: var(--md-space-150); }
+.pl-tab {
+  display: flex; flex-direction: column; align-items: center; gap: var(--md-space-50);
+  width: var(--pl-rail-w, 80px); min-height: 56px; padding: 0; border: 0; background: transparent;
+  color: var(--on-surface-variant); cursor: pointer; font-family: var(--font-sans);
+}
+.pl-rail-indicator { position: relative; isolation: isolate; display: grid; place-items: center; width: 56px; height: 32px; border-radius: var(--md-shape-full); }
+.pl-rail-indicator::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; z-index: -1; transition: opacity var(--md-duration-short2) var(--md-easing-standard); }
+.pl-tab:hover .pl-rail-indicator::after { opacity: var(--md-state-hover); }
+.pl-tab:active .pl-rail-indicator::after { opacity: var(--md-state-pressed); }
+html[data-style] .preview-root .pl-tab svg.icon-symbol,
+.pl-tab svg.icon-symbol { width: 24px; height: 24px; fill: currentColor; stroke: none; }
+.pl-tab .icon-selected { display: none; }
+.pl-tab.active .icon-selected { display: block; }
+.pl-tab.active .icon-unselected { display: none; }
+.pl-tab.active { color: var(--text); }
+.pl-tab.active .pl-rail-indicator { background: var(--secondary-container); color: var(--on-secondary-container); }
+.pl-rail-label { max-width: 100%; font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); }
+.pl-tab.active .pl-rail-label { font: var(--md-type-emphasized-label-medium); letter-spacing: var(--md-type-emphasized-label-medium-tracking); }
+/* 긴 라벨(Components)이 레일 폭 80을 넘으면 자간만 줄여 맞춘다(Badges와 같은 방식) */
+.pl-tab[data-panel="components"] .pl-rail-label, .pl-tab.active[data-panel="components"] .pl-rail-label { letter-spacing: -0.5px; }
+.library-page .pl-tab:focus-visible { outline: none; }
+.library-page .pl-tab:focus-visible .pl-rail-indicator { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+
+/* 사이드바 — 하위 메뉴만 */
+.pl-sidebar {
+  min-height: 0; overflow-y: auto;
+  padding: var(--md-space-150) var(--md-space-100) var(--md-space-100);
+  background: var(--bg);
+}
+.pl-sidebar[data-no-menu] { display: none; }
+.pl-side-menu { min-height: 0; }
+
+/* 계산기 열 — 본문 오른쪽 */
+.pl-side-calc { min-height: 0; display: flex; flex-direction: column; }
+
+/* 사이드바 안 하위 메뉴 — 붙지 않고 칸 안에서 스크롤한다 */
+.pl-side-menu .pl-comp-nav { position: static; max-height: none; overflow: visible; padding: 0; }
+.pl-side-menu .pl-comp-nav[hidden] { display: none; }
+
+/* 계산기 — 떠 있는 카드 대신 오른쪽 열을 채운다(드래그 없음). 본문은 #calc-body가 스크롤한다. */
+.pl-side-calc #floating-calc {
+  position: static; inset: auto; width: auto; max-height: none; height: 100%;
+  border: 0; border-radius: 0; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none; background-image: none;
+  user-select: auto; z-index: auto;
+}
+
+/* 본문 — 셸의 세 번째 열이 스크롤 컨테이너다 */
+.library-page #library-preview {
+  position: relative;   /* 화면 밖 글(.u-visually-hidden 등 absolute)의 기준 상자 */
+  height: 100vh;
+  overflow: auto;
+  margin-right: 0;
+  /* 붙어 있는 페이지 머리 높이만큼 포커스 · 앵커 스크롤을 띄운다(WCAG 2.4.11) */
+  scroll-padding-top: calc(var(--pl-page-h, 64px) + 16px);
+}
+.library-page .pl-content { padding: 24px 32px; }
+
+/* 좁은 화면 — 레일은 아래 내비게이션 바. 위에서부터 메뉴(최대 20%) · 계산기(30%) · 본문 */
+@media (max-width: 900px) {
+  .library-page .pl-shell,
+  .library-page .pl-shell:has(.pl-sidebar[data-no-menu]) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 30vh minmax(0, 1fr) auto;
+    grid-template-areas: "menu" "calc" "main" "rail";
+    height: 100vh; height: 100dvh;
+  }
+  .pl-rail { flex-direction: row; justify-content: center; padding: 0; overflow: visible; }
+  .pl-rail-tabs { flex-direction: row; gap: 0; width: 100%; justify-content: space-around; }
+  .pl-tab { flex: 1 1 0; width: auto; min-height: 80px; justify-content: center; }
+  .pl-sidebar { max-height: 20vh; }
+  .library-page #library-preview { height: auto; min-height: 0; }
+  .library-page .pl-content { padding: 16px; }
+}
+
+/* Everything outside the floating calculator shares the library tokens. */
+.library-page { --library-border: color-mix(in srgb, var(--text) 20%, var(--bg)); }
+.library-page #library-preview,
+.library-page #pl-main { background: var(--bg); color: var(--text); }
+/* 크기·굵기는 patterns.html 의 .pl-section-title 이 정본이다. 여기선 색만 맞춘다. */
+.library-page #pl-main .pl-section-title {
+  color: var(--text);
+}
+.library-page .pl-item-preview { color: var(--text); }
+.library-page .pl-item-meta { background: transparent; color: var(--text); }
+
+/* Column samples and their captions share the same left edge. */
+.library-page .pl-item-preview[style*="flex-direction:column"] {
+  align-items: flex-start;
+}
+
+/* 와이드 항목도 .pl-item 배치 규칙(min-width 320px · max-width 100% · flex 1)을 그대로 따른다. */
+.library-page .pl-item-wide .pl-item-preview {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ─── 계산기 맨 위 모드 줄(어두운/밝은 아이콘 토글) ───
+   선택은 채움 + secondary-container, 이름은 aria-label · 툴팁. */
+.calc-mode-row { display: flex; align-items: center; justify-content: space-between; gap: var(--calc-space-2); padding: var(--calc-space-3) var(--calc-space-4); }
+.calc-mode-row .preset-buttons { gap: 0; padding: 2px; background: transparent; border-color: var(--outline); border-radius: var(--md-shape-full); }
+.calc-mode-row .preset-btn { display: inline-grid; place-items: center; width: 40px; height: 32px; min-height: 0; padding: 0; color: var(--calc-text-dim); }
+.calc-mode-row .preset-btn .calc-icon { width: 20px; height: 20px; }
+.calc-mode-row .preset-btn.active { background: var(--secondary-container); color: var(--on-secondary-container); }
+.calc-mode-row .preset-btn:not(.active):hover { color: var(--calc-text); background: color-mix(in srgb, var(--calc-text) var(--md-state-hover), transparent); }
+.calc-mode-row .preset-btn:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); position: relative; z-index: 1; }
+.calc-mode-row .calc-section-label { margin: 0; padding: 0; }
+
+/* ─── 계산기 배경 · 색을 사이트 테마 역할에 맞춘다(2026-09-28) ───
+   예전 떠 있는 카드는 흰색 반투명(글래스) 전용 색(--calc-*)을 썼다. 오른쪽 열에 붙은 뒤로는
+   메뉴 · 본문과 같은 배경(--bg) 위에 역할 색을 쓴다. --calc-* 변수만 바꾸고 계산기 규칙은 그대로 둔다.
+   토큰 카드는 surface-container-low, 펼친 본문은 surface-container-lowest, 채운 버튼(내보내기)은 primary. */
+.pl-side-calc #floating-calc {
+  --calc-bg: var(--bg);
+  --calc-surface: var(--surface-container);
+  --calc-border: var(--outline-variant);
+  --calc-text: var(--text);
+  --calc-text-dim: var(--on-surface-variant);
+  --calc-accent: var(--primary);
+  --calc-on-accent: var(--on-primary);
+  background: var(--calc-bg);
+  color: var(--calc-text);
+}
+.pl-side-calc #calc-body { scrollbar-color: var(--outline-variant) transparent; }
+.pl-side-calc #calc-body::-webkit-scrollbar-thumb { background: var(--outline-variant); }
+.pl-side-calc .token-section { border: 0; background: var(--surface-container); }
+.pl-side-calc .token-header:hover { background: color-mix(in srgb, var(--calc-text) var(--md-state-hover), transparent); }
+.pl-side-calc .token-body { background: var(--surface-container-lowest); }
+.pl-side-calc .token-swatch { border-color: var(--outline-variant); }
+.pl-side-calc .token-hex { background: var(--surface-container-high); color: var(--calc-text-dim); }
+.pl-side-calc .level-slider input[type="range"] { accent-color: var(--primary); }
+/* 명도 · 채도 슬라이더 — 입력 기본 흰 바탕이 어두운 모드에서 드러나지 않게(보이는 트랙은 4px 그라데이션만) */
+.pl-side-calc .range-slider:not(.hue-slider) { background-color: transparent; }
+
+/* ════════════════════════════════════════
+   도구 영역 무채색(2026-09-28) — 레일 · 메뉴 · 계산기는 도구라서 견본 테마(Primary 색상 · 대비 수준)를 따르지 않는다.
+   밝은/어두운 모드(html[data-style])만 따라 회색 단계를 바꾸고, 대비는 본문 7:1 이상으로 고정한다.
+   사이트 역할 변수를 이 영역 안에서만 회색으로 다시 정의하므로 기존 규칙은 그대로 쓴다.
+   색이 곧 정보인 것(토큰 견본 · 색상 띠 · 명도 그라데이션 · 빨간 경고 점 --error)만 실제 색이다.
+   ════════════════════════════════════════ */
+.library-page {
+  --chrome-bg: #f5f5f5;
+  --chrome-canvas: #e4e4e4;
+  --chrome-island: #f7f7f7;       /* 페이지 아일랜드(캔버스 위) */
+  --chrome-island-live: #e8e8e8;  /* Live 아일랜드(테마 상자 위) */
+  --chrome-low: #fafafa;
+  --chrome-lowest: #ffffff;
+  --chrome-cont: #eeeeee;
+  --chrome-high: #e6e6e6;
+  --chrome-sel: #dddddd;
+  --chrome-text: #1b1b1b;
+  --chrome-dim: #4a4a4a;
+  --chrome-outline: #767676;
+  --chrome-ov: #cfcfcf;
+  --chrome-on-fill: #ffffff;
+}
+html[data-style="dark-saving"] .library-page {
+  --chrome-bg: #0a0a0a;
+  --chrome-canvas: #1a1a1a;
+  --chrome-island: #262626;
+  --chrome-island-live: #1f1f1f;
+  --chrome-low: #121212;
+  --chrome-lowest: #000000;
+  --chrome-cont: #1a1a1a;
+  --chrome-high: #242424;
+  --chrome-sel: #333333;
+  --chrome-text: #e8e8e8;
+  --chrome-dim: #b0b0b0;
+  --chrome-outline: #8a8a8a;
+  --chrome-ov: #363636;
+  --chrome-on-fill: #121212;
+}
+.library-page :is(.pl-rail, .pl-sidebar, .pl-side-calc, .pl-comp-page, .pl-island, .view-controls[data-placement="live"], .btn-spec-live-head) {
+  --bg: var(--chrome-bg);
+  --text: var(--chrome-text);
+  --on-surface: var(--chrome-text);
+  --text-on-container: var(--chrome-text);
+  --on-surface-variant: var(--chrome-dim);
+  --outline: var(--chrome-outline);
+  --outline-variant: var(--chrome-ov);
+  --surface: var(--chrome-bg);
+  --surface-container-lowest: var(--chrome-lowest);
+  --surface-container-low: var(--chrome-low);
+  --surface-container: var(--chrome-cont);
+  --surface-container-high: var(--chrome-high);
+  --surface-container-highest: var(--chrome-sel);
+  --secondary: var(--chrome-text);
+  --secondary-container: var(--chrome-sel);
+  --on-secondary-container: var(--chrome-text);
+  --primary: var(--chrome-text);
+  --on-primary: var(--chrome-on-fill);
+  --md-focus-ring-color: var(--chrome-text);
+  /* 템플릿 · 샘플 공통 규칙이 쓰는 별칭(슬라이더 트랙 · 손잡이 등)도 무채색으로 */
+  --accent: var(--chrome-text);
+  --on-accent: var(--chrome-on-fill);
+  --tonal: var(--chrome-sel);
+  --primary-on-bg: var(--chrome-text);
+  --secondary-on-bg: var(--chrome-text);
+  --border-strong: var(--chrome-outline);
+  --text-disabled: color-mix(in srgb, var(--chrome-text) 38%, transparent);
+  background: var(--bg);
+  color: var(--text);
+}
+/* 툴팁은 body에 붙으므로 따로 — 모드에 맞춘 무채색 반전 */
+.pl-tip { background: #2b2b2b; color: #f2f2f2; }
+html[data-style="dark-saving"] .pl-tip { background: #e8e8e8; color: #1b1b1b; }
+
+/* ─── 본문도 도구 틀은 무채색, 견본만 테마(2026-09-28) ───
+   본문 바탕은 무채색 캔버스, 항목 이름도 무채색. 견본(.pl-item-preview)마다 테마 배경(--bg)의 둥근 상자를 깔아
+   한 요소씩 묶는다 — 견본 안은 테마 · 모드 · 대비를 모두 따른다. 상자와 캔버스가 비슷한 밝기일 때를 위해 무채색 선을 두른다.
+   페이지 제목은 보이지 않게(메뉴 선택이 곧 제목, 제목은 스크린 리더 · 포커스 대상으로만 남김),
+   보기 옵션은 서랍 없이 맨 위 줄에 늘 펼쳐 둔다. */
+.library-page #library-preview,
+.library-page #pl-main { background: var(--chrome-canvas); color: var(--chrome-text); }
+.library-page :is(.pl-section-title, .pl-comp-empty) { color: var(--chrome-text); }
+.library-page .pl-item {
+  box-sizing: border-box;
+  background: var(--bg); color: var(--text);
+  border: 0; border-radius: var(--md-shape-lg);
+  padding: var(--md-space-300);
+}
+.library-page .pl-item-preview { background: transparent; }
+.library-page .pl-item :is(.pl-item-meta, .pl-item-name) { color: var(--text); }
+.library-page .pl-items > .pl-item + .pl-item { border-top: 0; }
+.library-page .pl-comp-page { --bg: var(--chrome-canvas); background: var(--chrome-canvas); border-bottom: 0; }
+.library-page .pl-comp-page[data-empty] { padding: 0; border-bottom: 0; }
+html[data-style] .preview-root .pl-comp-title,
+.library-page .pl-comp-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.library-page .pl-comp-controls { display: block; }
+.library-page .pl-comp-controls-inner { overflow: visible; }
+.library-page .pl-comp-controls-inner > .view-controls { padding-top: 0; }
+/* 보기 바 사이 간격은 gap으로 — 다른 페이지의 숨긴 바가 형제로 남아 있어 '+' 선택자가 첫 바에도 위 여백을 주던 문제(고침) */
+.library-page .pl-comp-controls-inner { display: flex; flex-direction: column; gap: var(--md-space-150); }
+/* 세로 flex 안이라 바의 flex-basis(검색 바 320px 등)가 높이로 쓰이지 않게 */
+.library-page .pl-comp-controls-inner > .view-controls { flex: none; }
+.library-page .pl-comp-head:not(:has(> :not(.pl-comp-title):not([hidden]))) { display: none; }
+.library-page .pl-comp-head:has(> :not(.pl-comp-title):not([hidden])) + .pl-comp-controls:not([hidden]) { margin-top: var(--md-space-150); }
+.library-page #pl-main .pl-section > :is(.pl-section-title, p) { color: var(--chrome-text); }
+
+/* 계산기 안 구분선 · 카드 테두리 없음 — M3처럼 면(surface 단계)과 간격으로만 나눈다 */
+.pl-side-calc :is(#calc-stats, #calc-contrast-level, #calc-weights, .calc-mode-row) { border: 0; }
+.pl-side-calc .token-body { border-top: 0; }
+/* 두 번째 항목부터 위 여백을 0으로 두던 옛 규칙(m3-styles · 패널 id 선택자)보다 우선해 모든 상자의 여백을 같게 */
+.library-page .pl-shell :is(#panel-components, #panel-styles, #panel-layout, #panel-pages) .pl-items > .pl-item { padding: var(--md-space-300); }
+
+/* 본문 위 여백 정리(2026-09-28) — 본문 칸의 위 여백(24)과 빈 페이지 머리 뒤 패널 간격(28)을 없앤다.
+   보기 옵션이 있으면 그 줄이 맨 위에 붙고(위 16), 없으면 첫 상자가 위 16에서 시작한다. */
+.library-page .pl-content { padding-top: 0; }
+/* 페이지 머리는 여백 없이 아일랜드만 담는다(2026-09-28). 위 16 · 첫 상자까지 16 — 붙을 때도 위 16에 떠 있다. */
+.library-page .pl-shell .pl-comp-page { padding: 0; top: var(--md-space-200); background: transparent; }
+.library-page .pl-shell :is(#panel-components, #panel-styles, #panel-layout, #panel-pages).pl-panel { padding-top: var(--md-space-200); gap: var(--md-space-200); }
+.library-page .pl-shell :is(#panel-components, #panel-styles, #panel-layout, #panel-pages).pl-panel:has(> .pl-comp-page[data-empty]) { gap: 0; padding-top: var(--md-space-200); }
+
+/* Motion 견본 줄 — 상자 폭 안에서 칸을 여러 줄로 감싼다(가로 스크롤 대신) */
+.library-page .pl-item .btn-spec-row.m3-motion-row { flex-wrap: nowrap; align-items: flex-start; overflow-x: visible; max-width: 100%; margin-right: 0; }
+.library-page .pl-item .btn-spec-row.m3-motion-row > .m3-motion-tiles { flex: 1 1 0; min-width: 0; flex-wrap: wrap; }
+
+/* ─── 견본 줄 이름을 위로, 줄 사이는 inset 구분선(2026-09-28) ───
+   줄 이름(.btn-spec-label, 144px 왼쪽 열)이 상자 폭을 많이 써서 이름을 줄 위쪽에 두고,
+   줄과 줄 사이는 상자 안쪽 여백만큼 들어간(inset) outline-variant 1px 선으로 나눈다.
+   이름은 줄(가로 스크롤 칸) 안에서 위치만 옮기므로 한 줄 · 가로 스크롤 동작과 DOM 순서는 그대로다.
+   Buttons States처럼 열 머리가 있는 표(table)는 행 머리가 열을 맞추는 역할이라 그대로 둔다. */
+.library-page .pl-item .btn-spec-block { gap: 0; }
+.library-page .pl-item .btn-spec-heading { margin-bottom: var(--md-space-100); }
+.library-page .pl-item .btn-spec-row:has(> .btn-spec-label) {
+  position: relative;
+  padding-top: calc(var(--md-space-150) + 16px + var(--md-space-100));
+  padding-bottom: var(--md-space-150);
+  margin-top: 0; margin-bottom: 0;
+  border-top: 1px solid var(--outline-variant);
+}
+.library-page .pl-item :is(.btn-spec-heading, .btn-spec-row:not(:has(> .btn-spec-label))) + .btn-spec-row:has(> .btn-spec-label),
+.library-page .pl-item .btn-spec-row:has(> .btn-spec-label):first-child { border-top: 0; }
+.library-page .pl-item .btn-spec-row > .btn-spec-label {
+  position: absolute; top: var(--md-space-150); left: 6px;
+  width: auto; padding: 0; line-height: 16px;
+}
+
+/* ════════════════════════════════════════
+   조정 UI = 무채색 아일랜드 바(2026-09-28)
+   · 페이지 아일랜드: 본문 맨 위(붙어 있음). 페이지의 모든 견본(States · Configurations · Live)이 따르는 옵션만.
+   · Live 아일랜드: 항목 상자 안 Live 블록 제목 바로 아래. 그 Live 데모에만 적용되는 조작.
+   테두리 · 그림자 없는 둥근 면(모서리 --md-shape-xl), 컨트롤은 가로로 놓이고 좁으면 다음 줄로 넘어간다.
+   ════════════════════════════════════════ */
+.library-page .pl-comp-controls-inner {
+  --bg: var(--chrome-island);
+  background: var(--bg);
+  border-radius: var(--md-shape-lg);   /* 아래 항목 상자와 같은 모서리 */
+  margin: 0; padding: var(--md-space-150) var(--md-space-250);
+}
+.library-page .pl-comp-controls-inner > .view-controls { gap: var(--md-space-150) var(--md-space-300); }
+.library-page .pl-item :is(.pl-island, .view-controls[data-placement="live"]) {
+  --bg: var(--chrome-island-live);
+  background: var(--bg); color: var(--text);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-space-150) var(--md-space-300);
+  margin: 0 0 var(--md-space-200); padding: var(--md-space-150) var(--md-space-250);
+  border-radius: var(--md-shape-xl);
+}
+.library-page .pl-item .pl-island > .btn-spec-row:has(> .btn-spec-label) {
+  position: static; display: flex; flex-wrap: nowrap; align-items: center; gap: var(--md-space-100);
+  padding: 0; margin: 0; border: 0; overflow: visible; max-width: 100%;
+}
+.library-page .pl-item .pl-island > .btn-spec-row > .btn-spec-label { position: static; width: auto; color: var(--on-surface-variant); }
+.library-page .pl-item :is(.pl-island, .view-controls[data-placement="live"]) + .btn-spec-row { border-top: 0; }
+/* 아일랜드 안 한 축의 선택지가 폭을 넘으면 그 축만 가로로 스크롤(포커스 링 여유 6px) */
+.library-page :is(.pl-comp-controls-inner, .pl-item .view-controls[data-placement="live"]) .view-control { min-width: 0; max-width: 100%; }
+.library-page :is(.pl-comp-controls-inner, .pl-item .view-controls[data-placement="live"]) .view-control > :is(.btn-group-connected, .m3-chip-set) {
+  flex: 0 1 auto; flex-wrap: nowrap; overflow-x: auto; min-width: 0; padding: 6px; margin: -6px; scrollbar-width: none;
+}
+.library-page .pl-comp-controls-inner .m3-icon-controls:has(.m3-icon-cats) { flex: 1 1 100%; }
+/* Icons 필터 아일랜드는 줄이 많아 붙여 두면 격자를 가리므로 따라 올라가게 둔다 */
+.library-page .pl-comp-page:has(.m3-icon-filter-bar:not([hidden])) { position: static; }
+
+/* 페이지 아일랜드 상태(2026-09-29): 처음엔 Filled(면만), 본문을 스크롤해 아래 내용 위에 뜨면 Elevated(더 밝은 면 + 그림자 2단계).
+   스크립트가 스크롤 위치로 .pl-comp-page[data-elevated]를 붙인다. */
+.library-page { --chrome-island-elevated: #ffffff; }
+html[data-style="dark-saving"] .library-page { --chrome-island-elevated: #2e2e2e; }
+.library-page .pl-comp-controls-inner { transition: background-color var(--md-duration-short4) var(--md-easing-standard), box-shadow var(--md-duration-short4) var(--md-easing-standard); }
+.library-page .pl-comp-page[data-elevated] .pl-comp-controls-inner { --bg: var(--chrome-island-elevated); box-shadow: var(--md-elevation-2); }
+@media (prefers-reduced-motion: reduce) { .library-page .pl-comp-controls-inner { transition: none; } }
+/* 아일랜드 안 슬라이더도 무채색(2026-09-29) — accent-color가 루트에서 계산된 Primary를 쓰던 것 */
+.library-page :is(.pl-comp-controls-inner, .pl-island, .view-controls[data-placement="live"]) :is(input[type="range"], .sample-range) {
+  accent-color: var(--chrome-text); color: var(--chrome-text); border-color: var(--chrome-outline); outline-color: var(--chrome-text);
+}
+
+/* ════════════════════════════════════════
+   Live 패널(2026-10-04) — 정적 견본(States · Configurations)과 나눠 "위 컴포넌트를 직접 조작해 보는 곳"임이 보이게.
+   · 무채색 머리줄: 제목 Live + 안내 한 줄 + (있으면) Live 아일랜드를 오른쪽 끝에.
+   · 머리줄과 같은 색의 2px 테두리로 데모를 감싼다. 틀 안 데모는 테마 · 모드 · 대비를 그대로 따른다.
+   ════════════════════════════════════════ */
+.library-page .pl-item .btn-spec-live {
+  margin-top: var(--md-space-100);
+  padding: 0 var(--md-space-200) var(--md-space-200);
+  border: 2px solid var(--chrome-island-live);
+  border-radius: var(--md-shape-lg);
+}
+.library-page .pl-item .btn-spec-live-head {
+  --bg: var(--chrome-island-live);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-space-100) var(--md-space-300);
+  margin: 0 calc(-1 * var(--md-space-200)) var(--md-space-200);
+  padding: var(--md-space-150) var(--md-space-200);
+  border-radius: var(--md-shape-md) var(--md-shape-md) 0 0;
+}
+.library-page .pl-item .btn-spec-live-head > .btn-spec-heading { margin: 0; color: var(--text); }
+.library-page .pl-item .btn-spec-live-head > .btn-spec-live-hint {
+  flex: 1 1 auto; margin: 0; color: var(--on-surface-variant);
+  font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking);
+}
+/* Live 아일랜드는 머리줄 안에서는 면 없이 오른쪽 끝에 — 페이지 아일랜드와 같은 축 이름 + XS 연결 버튼 모양 */
+.library-page .pl-item .btn-spec-live-head > :is(.view-controls[data-placement="live"], .pl-island) {
+  flex: 0 1 auto; margin: 0 0 0 auto; padding: 0; background: transparent; border-radius: 0;
+  min-width: 0; max-width: 100%;   /* 좁은 폭에서 줄어들어야 축마다 가로 스크롤이 생긴다(390px 넘침, 적합성 검토 10-18) */
+}
+.library-page .pl-item .btn-spec-live-head + .btn-spec-row:has(> .btn-spec-label) { border-top: 0; }
+.library-page .pl-item .btn-spec-live > .btn-spec-row:has(> .btn-spec-label):first-of-type { border-top: 0; }
+
+/* ════════════════════════════════════════
+   계산기 접기(2026-10-04) — 접으면 계산기 열이 아이콘 버튼 줄(56)만 남아 본문이 넓어진다.
+   ════════════════════════════════════════ */
+.library-page .pl-shell[data-calc-collapsed] { --pl-calc-w: 56px; }
+.pl-calc-bar { display: flex; justify-content: flex-end; padding: var(--md-space-100) var(--md-space-100) 0; }
+.pl-shell[data-calc-collapsed] .pl-calc-bar { justify-content: center; }
+.pl-shell[data-calc-collapsed] .pl-side-calc #floating-calc { display: none; }
+.pl-calc-toggle {
+  position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+  border: 0; border-radius: var(--md-shape-full); background: transparent; color: var(--on-surface-variant); cursor: pointer;
+}
+.pl-calc-toggle::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; transition: opacity var(--md-duration-short2) var(--md-easing-standard); }
+.pl-calc-toggle:hover::after { opacity: var(--md-state-hover); }
+.pl-calc-toggle:active::after { opacity: var(--md-state-pressed); }
+.library-page .pl-calc-toggle:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+html[data-style] .preview-root .pl-calc-toggle svg.icon-symbol,
+.pl-calc-toggle svg.icon-symbol { width: 24px; height: 24px; fill: currentColor; stroke: none; }
+.pl-calc-toggle .pl-calc-icon-open { display: none; }
+.pl-shell[data-calc-collapsed] .pl-calc-toggle .pl-calc-icon-open { display: block; }
+.pl-shell[data-calc-collapsed] .pl-calc-toggle .pl-calc-icon-close { display: none; }
+@media (max-width: 900px) {
+  .library-page .pl-shell[data-calc-collapsed],
+  .library-page .pl-shell[data-calc-collapsed]:has(.pl-sidebar[data-no-menu]) { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+  .pl-shell[data-calc-collapsed] .pl-calc-bar { justify-content: flex-end; padding-bottom: var(--md-space-50); }
+}
+
+/* 가로 스크롤 신호(2026-10-04) — 넘친 쪽 가장자리 48을 흐리게. 상태는 JS가 data-scroll-start/end로 넣는다. */
+.library-page .pl-item :is(.btn-spec-scroll, .btn-spec-row)[data-scroll-end] {
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 48px), transparent);
+          mask-image: linear-gradient(to right, black calc(100% - 48px), transparent);
+}
+.library-page .pl-item :is(.btn-spec-scroll, .btn-spec-row)[data-scroll-start] {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 48px);
+          mask-image: linear-gradient(to right, transparent, black 48px);
+}
+.library-page .pl-item :is(.btn-spec-scroll, .btn-spec-row)[data-scroll-start][data-scroll-end] {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 48px, black calc(100% - 48px), transparent);
+          mask-image: linear-gradient(to right, transparent, black 48px, black calc(100% - 48px), transparent);
+}
+
+/* ════════════════════════════════════════
+   Overview(라이브러리 소개 · 캠페인, 2026-10-18) — 레일 첫 탭. 도구 틀과 같은 무채색(--chrome-*), 글자는 M3 타입 토큰.
+   폭: 본문 칸을 가득 쓰되 1200px에서 멈추고 가운데. 넓으면 2단, 좁으면 1단(컨테이너 쿼리).
+   ════════════════════════════════════════ */
+.library-page #panel-overview { padding-block: var(--md-space-300) var(--md-space-600); }
+.ov { container-type: inline-size; display: grid; gap: var(--md-space-300); width: 100%; max-width: 1200px; margin-inline: auto; color: var(--chrome-text); word-break: keep-all; overflow-wrap: anywhere; }   /* 한글은 단어 단위로 줄을 바꾼다 */
+.ov strong { font-weight: 600; }
+.ov-block { display: grid; gap: var(--md-space-300); padding: var(--md-space-500); border-radius: var(--md-shape-xl); background: var(--chrome-island); }
+.ov-heading { margin: 0; font: var(--md-type-headline-medium); letter-spacing: var(--md-type-headline-medium-tracking); color: var(--chrome-text); text-wrap: balance; }
+.ov-text { margin: 0; max-width: 64ch; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--chrome-text); }
+.ov-note { margin: 0; font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--chrome-dim); }
+.ov-label { margin: 0; font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--chrome-dim); }
+
+/* 히어로 — 사이트 이름(OLED 절감형 UI 디자인 시스템 라이브러리, 2026-10-25 LessWatt에서 변경 · 서브타이틀은 이름과 겹쳐 삭제) · 짧은 설명(2026-10-20). 바로 가기 버튼은 첫 화면 이탈을 줄이려고 뺐다. 바탕은 계산기에서 정한 Primary, 글자는 on-primary */
+.ov-hero { display: grid; gap: var(--md-space-500); align-items: center; padding: var(--md-space-700) var(--md-space-500); border-radius: var(--md-shape-xl); background: var(--primary); color: var(--on-primary); }
+.ov-hero :is(.ov-title, .ov-subtitle, .ov-lead) { color: var(--on-primary); }
+.ov-hero .ov-lead { max-width: 76ch; }   /* 히어로 설명은 두 줄 안팎으로 넓게(2026-10-20) */
+.ov-subtitle { margin: 0; font: var(--md-type-title-large); letter-spacing: var(--md-type-title-large-tracking); }
+.ov-hero .ov-title { font: var(--md-type-display-large); letter-spacing: var(--md-type-display-large-tracking); }
+.ov-hero-copy { display: grid; gap: var(--md-space-200); }
+.ov-eyebrow { margin: 0; font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--chrome-dim); }
+.ov-title { margin: 0; font: var(--md-type-display-medium); letter-spacing: var(--md-type-display-medium-tracking); color: var(--chrome-text); text-wrap: balance; }
+.ov-title:focus-visible { outline: var(--md-focus-ring-width) solid var(--on-primary); outline-offset: var(--md-focus-ring-offset); }
+.ov-lead { margin: 0; max-width: 52ch; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--chrome-text); }
+
+/* 두 번째 칸 「빛, 디자이너가 선택할 수 있는 전력 절감」(2026-10-20) — 카드 세 장, 올리면(또는 눌러서) 앞면이 사라지고 자세한 내용 · 출처가 나타난다(뒤집기 대신 겹쳐 바꾸기 — 사용자 의견).
+   그래프는 한 조각만 강조(Primary)하고 나머지는 틀 회색 단계 — 정체는 범례 글자가 알린다(색만으로 구분하지 않음) */
+.ov-flips { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--md-space-300); }
+.ov-flip { min-width: 0; border-radius: var(--md-shape-lg); outline: none; cursor: pointer; }
+.ov-flip:focus-visible { outline: var(--md-focus-ring-width) solid var(--chrome-text); outline-offset: var(--md-focus-ring-offset); }
+.ov-flip-inner { display: grid; height: 100%; }
+.ov-flip-face { grid-area: 1 / 1; display: flex; flex-direction: column; gap: var(--md-space-150); padding: var(--md-space-300); border-radius: var(--md-shape-lg); background: var(--chrome-cont);
+  transition: opacity var(--md-motion-spring-standard-default-effects-duration, 200ms) var(--md-motion-spring-standard-default-effects, ease); }
+.ov-flip-back { opacity: 0; }   /* 화면에서만 숨긴다 — 화면 낭독기는 앞 · 뒷면을 모두 읽는다 */
+@media (hover: hover) {
+  .ov-flip:hover .ov-flip-front { opacity: 0; }
+  .ov-flip:hover .ov-flip-back { opacity: 1; }
+}
+.ov-flip[data-flipped] .ov-flip-front { opacity: 0; }
+.ov-flip[data-flipped] .ov-flip-back { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ov-flip-face { transition: none; } }
+.ov-flip-step { margin: 0; font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--chrome-dim); font-variant-numeric: tabular-nums; }
+.ov-flip-title { margin: 0; font: var(--md-type-title-large); letter-spacing: var(--md-type-title-large-tracking); color: var(--chrome-text); text-wrap: balance; }
+.ov-flip-visual { display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-space-200); }
+.ov-flip-big { margin: 0; display: flex; align-items: baseline; gap: 2px; font: var(--md-type-display-small); letter-spacing: var(--md-type-display-small-tracking); color: var(--chrome-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ov-flip-big > span:last-child { font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); color: var(--chrome-dim); }
+.ov-flip-num { display: inline-block; min-width: 2ch; text-align: end; }
+.ov-flip-cap { margin: 0; font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); color: var(--chrome-dim); }
+.ov-flip-figure { display: grid; gap: 2px; }
+.ov-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ov-flip-text { margin: 0; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--chrome-text); }
+.ov-flip-src { margin: auto 0 0; font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--chrome-dim); }
+/* 파이 — 조각 색은 Primary와 같은 Tonal palette의 다른 톤(사용자 결정 2026-10-20). 둘째 · 셋째 조각 톤은 patterns.js가
+   계산기 Primary로 구해 --ov-pie-2 · --ov-pie-3에 넣는다 — 이웃 조각끼리 팔레트 두 단계(톤 20) 이상 벌린다(사용자 결정):
+   둘째 · 셋째 조각을 Primary의 밝은 쪽 · 어두운 쪽으로 갈라 첫 조각과 확실히 다르게(10-20 첫 · 둘째 차이가 작다는 의견):
+   밝은: Primary(≈T35) · T80 · T10 / 어두운: Primary(≈T63) · T30 · T90(검증: 이웃 ΔE 29 이상). 조각 사이 선은 없고, 정체는 범례 글자가 알린다 */
+.ov-pie { flex: none; width: 120px; height: 120px; }
+.ov-pie-seg.is-c1, .ov-legend i.is-c1 { fill: var(--primary); background: var(--primary); }
+.ov-pie-seg.is-c2, .ov-legend i.is-c2 { fill: var(--ov-pie-2, var(--primary-container)); background: var(--ov-pie-2, var(--primary-container)); }
+.ov-pie-seg.is-c3, .ov-legend i.is-c3 { fill: var(--ov-pie-3, var(--primary-fixed-dim)); background: var(--ov-pie-3, var(--primary-fixed-dim)); }
+.ov-legend i.is-off { background: #000; box-shadow: inset 0 0 0 1px var(--chrome-outline); }
+.ov-legend { align-self: flex-start; margin: auto 0 0; list-style: none; padding: 0; display: grid; gap: 4px; font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--chrome-text); }
+.ov-legend li { display: flex; align-items: center; gap: 8px; }
+.ov-legend i { flex: none; width: 12px; height: 12px; border-radius: 3px; }
+/* 화소 그림 — 6 × 4 칸, 검정(꺼짐)부터 밝은 Primary까지 */
+.ov-pixels { flex: none; display: grid; grid-template-columns: repeat(6, 15px); gap: 2px; padding: 6px; border-radius: var(--md-shape-sm); background: #000; }
+.ov-px { width: 15px; height: 15px; border-radius: 2px; background: #000; }
+.ov-px[data-l="1"] { background: color-mix(in oklab, var(--primary) 35%, #000); }
+.ov-px[data-l="2"] { background: color-mix(in oklab, var(--primary) 70%, #000); }
+.ov-px[data-l="3"] { background: color-mix(in oklab, var(--primary) 70%, #fff); }
+
+/* 숫자 세 개 */
+.ov-fact-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--md-space-300); }
+.ov-fact { display: grid; gap: var(--md-space-100); align-content: start; padding-top: var(--md-space-200); border-top: 2px solid var(--chrome-text); }
+.ov-fact-num { font: var(--md-type-display-small); letter-spacing: var(--md-type-display-small-tracking); color: var(--chrome-text); }
+.ov-fact-text { font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--chrome-text); }
+
+/* BW Index 여덟 색 — 막대 길이 = 값. 색 칩은 실제 원색이라 바탕과 구분되게 테두리를 두른다 */
+.ov-split { align-items: start; }
+.ov-split-head { display: grid; gap: var(--md-space-200); align-content: start; }
+.ov-bw { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--md-space-150); }
+.ov-bw-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) 3em; align-items: center; gap: var(--md-space-150); }
+.ov-bw-name { display: flex; align-items: center; gap: var(--md-space-100); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); }
+.ov-bw-chip { width: 20px; height: 20px; flex: none; border-radius: var(--md-shape-xs); outline: 1px solid var(--chrome-outline); outline-offset: -1px; }
+.ov-bw-track { height: 12px; border-radius: var(--md-shape-full); background: var(--chrome-ov); overflow: hidden; }
+.ov-bw-bar { display: block; height: 100%; width: max(4px, calc(var(--v) * 100%)); border-radius: inherit; background: var(--chrome-text); }
+.ov-bw-value { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); font-variant-numeric: tabular-nums; text-align: end; }
+/* Overview — 여덟 색 사이의 색(3선형 보간) 그림(2026-11-17) */
+.ov-mix-controls { display: grid; gap: var(--md-space-100); max-width: 420px; }
+.ov-mix-slider { display: grid; grid-template-columns: 1.5em minmax(0, 1fr) 3em; align-items: center; gap: var(--md-space-150); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--chrome-text); }
+.ov-mix-slider input { width: 100%; height: 24px; margin: 0; accent-color: var(--chrome-text); cursor: pointer; }
+.ov-mix-slider input:focus-visible { outline: var(--md-focus-ring-width) solid var(--chrome-text); outline-offset: var(--md-focus-ring-offset); border-radius: var(--md-shape-xs); }
+.ov-mix-slider output { font-variant-numeric: tabular-nums; text-align: end; }
+.ov-mix-presets { display: flex; flex-wrap: wrap; gap: var(--md-space-100); }
+.ov-mix-preset { min-height: 32px; padding: 0 var(--md-space-200); border: 1px solid var(--chrome-outline); border-radius: var(--md-shape-full); background: transparent; color: var(--chrome-text); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); cursor: pointer; }
+.ov-mix-preset:hover { background: color-mix(in srgb, var(--chrome-text) 8%, transparent); }
+.ov-mix-preset:focus-visible { outline: var(--md-focus-ring-width) solid var(--chrome-text); outline-offset: var(--md-focus-ring-offset); }
+.ov-mix-figure { display: grid; gap: var(--md-space-200); min-width: 0; }
+.ov-mix-cube { display: block; width: 100%; max-width: 420px; height: auto; margin-inline: auto; overflow: visible; }
+.ov-mix-cube .is-edge { stroke: var(--chrome-outline); stroke-width: 1; }
+.ov-mix-cube .is-back { stroke-dasharray: 4 4; }
+.ov-mix-cube .is-link { stroke: var(--chrome-text); stroke-linecap: round; }
+.ov-mix-cube .is-vertex { stroke: var(--chrome-outline); stroke-width: 1; }
+.ov-mix-cube .is-point { stroke: var(--chrome-text); stroke-width: 2; }
+.ov-mix-cube text { font: var(--md-type-label-medium); fill: var(--chrome-text); }
+.ov-mix-cube .is-value { fill: var(--chrome-dim); font-variant-numeric: tabular-nums; }
+.ov-mix-cube .is-axis { fill: var(--chrome-dim); }
+.ov-mix-result { display: flex; align-items: center; gap: var(--md-space-150); margin: 0; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--chrome-text); }
+.ov-mix-result strong { font: var(--md-type-headline-small); font-variant-numeric: tabular-nums; }
+.ov-mix-bw { color: var(--chrome-dim); font: var(--md-type-body-medium); font-variant-numeric: tabular-nums; }
+.ov-mix-swatch { width: 40px; height: 40px; flex: none; border-radius: var(--md-shape-sm); outline: 1px solid var(--chrome-outline); outline-offset: -1px; }
+.ov-mix-weights { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--md-space-100); }
+.ov-mix-weights .ov-bw-row { grid-template-columns: 80px minmax(0, 1fr) 6.5em; }
+.ov-mix-weights .ov-bw-value { font: var(--md-type-label-medium); color: var(--chrome-dim); }
+
+/* 다섯 가지 — 번호 카드 */
+.ov-p-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--md-space-200); }
+.ov-p { display: grid; gap: var(--md-space-100); align-content: start; padding: var(--md-space-300) var(--md-space-250); border-radius: var(--md-shape-lg); background: var(--chrome-cont); }
+.ov-p-num { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--chrome-dim); font-variant-numeric: tabular-nums; }
+.ov-p-title { margin: 0; font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); color: var(--chrome-text); }
+.ov-p-text { margin: 0; font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--chrome-dim); }
+.ov-pledge { margin: 0; padding: var(--md-space-250) var(--md-space-300); border-radius: var(--md-shape-lg); border: 1px solid var(--chrome-outline); font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--chrome-text); }
+
+/* 두 모드 — 작은 견본은 프리셋 기본 색으로 고정(설명용 그림, 계산기와 무관) */
+.ov-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--md-space-300); }
+.ov-mode { display: grid; gap: var(--md-space-150); align-content: start; }
+.ov-mode-name { margin: 0; font: var(--md-type-title-large); letter-spacing: var(--md-type-title-large-tracking); }
+.ov-mode-preview { position: relative; display: grid; gap: 8px; align-content: start; height: 128px; padding: 32px; border-radius: var(--md-shape-lg); outline: 1px solid var(--chrome-ov); outline-offset: -1px; box-sizing: border-box; background: var(--mp-bg); }
+.ov-mode-preview[data-mode="dark"] { --mp-bg: hsl(10 5% 4%); --mp-card: transparent; --mp-line: hsl(10 3% 50%); --mp-border: hsl(10 4% 30%); --mp-btn: hsl(10 65% 66%); }
+.ov-mode-preview[data-mode="light"] { --mp-bg: hsl(8 6% 96%); --mp-card: hsl(8 6% 88%); --mp-line: hsl(8 6% 40%); --mp-border: transparent; --mp-btn: hsl(8 75% 34%); }
+.ov-mp-card { position: absolute; inset: 12px; border-radius: var(--md-shape-md); background: var(--mp-card); outline: 1px solid var(--mp-border); outline-offset: -1px; }
+.ov-mp-line { position: relative; height: 8px; width: 60%; border-radius: var(--md-shape-full); background: var(--mp-line); }
+.ov-mp-short { width: 40%; }
+.ov-mp-btn { position: absolute; right: 28px; bottom: 28px; width: 64px; height: 24px; border-radius: var(--md-shape-full); background: var(--mp-btn); }
+
+/* 시작하기 — 단계 + 둘러보기 카드(누르면 그 레일 탭으로) */
+.ov-start { align-items: start; }
+.ov-start-steps, .ov-start-areas { display: grid; gap: var(--md-space-200); align-content: start; }
+.ov-areas { display: grid; gap: var(--md-space-150); }
+.ov-area {
+  position: relative; display: grid; gap: var(--md-space-50); align-content: start; text-align: start;
+  min-height: 48px; padding: var(--md-space-200) var(--md-space-250); border: 1px solid var(--chrome-ov); border-radius: var(--md-shape-lg);
+  background: transparent; color: var(--chrome-text); cursor: pointer; font: inherit;
+}
+.ov-area::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: var(--chrome-text); opacity: 0; pointer-events: none; transition: opacity var(--md-duration-short2) var(--md-easing-standard); }
+.ov-area:hover::before { opacity: var(--state-hover); }
+.ov-area:active::before { opacity: var(--state-press); }
+.ov-area:focus-visible { outline: var(--md-focus-ring-width) solid var(--chrome-text); outline-offset: var(--md-focus-ring-offset); }
+.ov-area-name { font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); }
+.ov-area-text { font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--chrome-dim); }
+.ov-area-text em { font-style: normal; font-weight: 600; color: var(--chrome-text); }
+.ov-steps, .ov-rules { margin: 0; padding-inline-start: 1.5em; display: grid; gap: var(--md-space-150); max-width: 68ch; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); }
+.ov-steps li::marker { font-weight: 600; }
+.ov-honest .ov-rules { max-width: 80ch; }
+
+/* 넓을 때 — 히어로 · BW · 시작하기를 2단, 숫자 세 개를 3단으로 */
+@container (min-width: 860px) {
+  .ov-hero { padding: var(--md-space-800) var(--md-space-700); }
+  .ov-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--md-space-600); }
+  .ov-start { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--md-space-600); }
+  .ov-fact-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ov-flips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ov-block { padding: var(--md-space-600); }
+}
+@container (max-width: 560px) {
+  .ov-hero, .ov-block { padding: var(--md-space-300); }
+  .ov-hero .ov-title { font: var(--md-type-display-medium); letter-spacing: var(--md-type-display-medium-tracking); }
+  .ov-heading { font: var(--md-type-headline-small); letter-spacing: var(--md-type-headline-small-tracking); }
+  .ov-bw-row { grid-template-columns: 72px minmax(0, 1fr) 2.5em; gap: var(--md-space-100); }
+  .ov-fact-num { font: var(--md-type-headline-large); letter-spacing: var(--md-type-headline-large-tracking); }
+}
+@media (prefers-reduced-motion: reduce) { .ov-area::before { transition: none; } }
+@media (forced-colors: active) { .ov-mix-cube .is-edge, .ov-mix-cube .is-link, .ov-mix-cube .is-point { stroke: CanvasText; } .ov-bw-bar { background: CanvasText; } .ov-area, .ov-pledge { border-color: CanvasText; } }

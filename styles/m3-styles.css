@@ -1,0 +1,448 @@
+/**
+ * m3-styles.css
+ * 패턴 라이브러리의 Styles 패널(Color · Elevation · Icons · Motion · Shape · Spacing · Typography · States)과
+ * 두 패널이 함께 쓰는 갤러리 틀(메뉴 · 견본 블록 · 행) 스타일.
+ * 모든 색은 팔레트 토큰에서 파생하므로 프리셋 전환에 함께 반응한다.
+ */
+
+/* ─── 화면 밖 설명 ─────────────────────────────────────────── */
+/* 화면에서만 감추고 접근성 트리에는 남기는 유틸리티.
+   표 캡션 · 배지 개수처럼 화면에는 없어도 되는 설명과, 팔레트의 「무엇과의 대비인지」가 쓴다
+   (WCAG 1.3.1 · 3.3.2). */
+.u-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Styles › Shape (m3.material.io/styles/shape) ───
+   모양 칸은 outline 역할로 채운다 — 모양의 경계가 곧 정보라 비텍스트 대비 기준을 따르는 색을 쓴다. */
+.m3-shape-tiles { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; flex: none; align-items: flex-start; }
+.m3-shape-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 96px; flex: none; }
+.m3-shape-box { display: block; width: 72px; height: 72px; margin-bottom: 8px; background: var(--outline); }
+.m3-shape-box--cut { clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)); }
+.m3-shape-name { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); }
+.m3-shape-meta { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--on-surface-variant); }
+/* 겹친 모양 — 바깥 surface-container-highest + outline 테두리, 안쪽 outline 채움 */
+.m3-shape-nest { display: block; box-sizing: border-box; width: 176px; height: 136px; margin-bottom: 8px; padding: var(--pad); border: 1px solid var(--outline); border-radius: var(--outer); background: var(--surface-container-highest); }
+.m3-shape-nest > span { display: block; height: 100%; border-radius: var(--inner); background: var(--outline); }
+.m3-shape-row:has(.m3-shape-nest) .m3-shape-tile { width: 192px; }
+/* Live */
+.m3-shape-range { width: 280px; flex: none; }
+.m3-shape-out { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); white-space: nowrap; }
+.m3-shape-corners { display: flex; gap: 8px; flex: none; }
+.m3-shape-live { width: 200px; height: 136px; flex: none; background: var(--outline); transition: border-radius var(--md-duration-short4) var(--md-easing-standard); }
+
+/* ─── Styles › Spacing (m3.material.io/styles/spacing) ───
+   크기 견본은 outline 역할로 채운다. 부분(padding · gap · margin)은 영역을 컨테이너 역할, 내용을 그 짝 on- 역할로 칠해 대비를 보장한다. */
+.m3-space-tiles { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; flex: none; align-items: flex-end; }
+.m3-space-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 80px; flex: none; }
+.m3-space-tile--wide { width: 184px; }
+.m3-space-box { display: block; width: var(--v); height: var(--v); min-width: 1px; margin-bottom: 8px; background: var(--outline); }
+.m3-space-tile:has(.m3-space-box[style*="space-0)"]) .m3-space-box { width: 1px; height: 72px; background: var(--outline); }
+.m3-space-name { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); }
+.m3-space-meta { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--on-surface-variant); }
+.m3-space-demo { display: flex; box-sizing: border-box; width: 168px; height: 96px; margin-bottom: 8px; border: 1px solid var(--outline); border-radius: var(--md-shape-sm); }
+.m3-space-demo > span { display: block; flex: 1; border-radius: var(--md-shape-xs); background: var(--outline); }
+.m3-space-demo--padding { padding: var(--md-space-200); background: var(--secondary-container); }
+.m3-space-demo--padding > span { background: var(--on-secondary-container); }
+.m3-space-demo--gap { gap: var(--md-space-100); padding: 0; background: var(--tertiary-container); border-radius: var(--md-shape-sm); overflow: hidden; }
+.m3-space-demo--gap > span { border-radius: 0; background: var(--on-tertiary-container); }
+.m3-space-demo--margin { padding: 0; background: var(--primary-container); }
+.m3-space-demo--margin > span { margin: var(--md-space-300); background: var(--on-primary-container); }
+/* Live — Search 여백(24dp → 포커스 12dp) · 글자 크기 */
+.m3-space-out { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); white-space: nowrap; }
+.m3-space-screen { width: 360px; flex: none; padding: var(--md-space-200) 0; border: 1px solid var(--outline); border-radius: var(--md-shape-md); background: var(--surface-container-low); }
+.m3-space-search { display: flex; align-items: center; gap: var(--md-space-100); margin: 0 var(--md-space-300); padding: var(--md-space-100) var(--md-space-200); border-radius: var(--md-shape-full); background: var(--surface-container-highest); color: var(--text-on-container); transition: margin var(--md-duration-short4) var(--md-easing-standard); }
+.m3-space-screen[data-focused] .m3-space-search { margin: 0 var(--md-space-150); }
+.m3-space-search .icon { width: 24px; height: 24px; flex: none; }
+.m3-space-search-text { flex: 1; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--on-surface-variant); }
+.m3-space-range { width: 240px; flex: none; }
+.m3-space-list { --scale: 1; display: flex; flex-direction: column; gap: var(--md-space-50); width: 320px; flex: none; box-sizing: border-box; padding: var(--md-space-200); border: 1px solid var(--outline); border-radius: var(--md-shape-md); background: var(--surface-container-low); }
+.m3-space-list-title { font: var(--md-type-body-large); font-size: calc(1rem * var(--scale)); line-height: calc(1.5rem * var(--scale)); letter-spacing: var(--md-type-body-large-tracking); color: var(--text-on-container); }
+.m3-space-list-body { font: var(--md-type-body-medium); font-size: calc(0.875rem * var(--scale)); line-height: calc(1.25rem * var(--scale)); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-surface-variant); }
+
+/* ─── Styles › Elevation (m3.material.io/styles/elevation) ───
+   단계 0~5의 그림자는 tokens.css --md-elevation-0~5(material-web 두 겹 그림자, shadow 역할 = 검정).
+   견본 표면은 surface-container-low — 배경(surface) 위에서 그림자와 톤 차이가 함께 보인다. */
+.m3-elev-tiles { display: flex; gap: 16px; list-style: none; margin: 0; padding: 8px 16px 20px 4px; flex: none; }
+.m3-elev-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  width: 96px;
+  min-height: 88px;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--md-shape-md);
+  background: var(--surface-container-low);
+  color: var(--text-on-container);
+  text-align: left;
+  flex: none;
+}
+.m3-elev-name { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); }
+.m3-elev-dp { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--on-surface-variant); }
+/* Live — hover · focus에서 한 단계 올라간다(M3 "Changing elevation": 버튼 · FAB는 hover 시 +1) */
+.m3-elev-live { width: 128px; cursor: pointer; font: inherit; box-shadow: var(--elev-rest); transition: box-shadow var(--md-duration-short4) var(--md-easing-standard); }
+.m3-elev-live:is(:hover, :focus-visible) { box-shadow: var(--elev-raise); }
+/* Depicting elevation — 겹친 두 표면 */
+.m3-elev-stage { position: relative; width: 240px; height: 120px; flex: none; margin: 4px 0 8px; }
+.m3-elev-under, .m3-elev-over, .m3-elev-scrim { position: absolute; border-radius: var(--md-shape-md); }
+.m3-elev-under { inset: 0 64px 24px 0; background: var(--surface-container-low); }
+.m3-elev-over { inset: 32px 0 0 72px; background: var(--surface-container-low); }
+/* 톤 차이: 위 표면이 다른 표면 역할 */
+.m3-elev-stage[data-depict="tonal"] .m3-elev-over { background: var(--surface-container-highest); }
+/* 그림자: 같은 톤, 위 표면에 단계 3 그림자 */
+.m3-elev-stage[data-depict="shadow"] .m3-elev-over { box-shadow: var(--md-elevation-3); }
+/* 스크림: scrim 역할 32%(M3 Applying elevation · Compose ScrimTokens) 위에 표면 */
+.m3-elev-scrim { inset: 0; background: color-mix(in srgb, var(--scrim) 32%, transparent); }
+.m3-elev-stage[data-depict="scrim"] .m3-elev-over { background: var(--surface-container-high); }
+.m3-elev-table td:last-child { white-space: normal; min-width: 320px; }
+
+/* ─── Styles › Icons (m3.material.io/styles/icons) ───
+   글리프는 Material Symbols 공식 SVG(google/material-design-icons). 필터는 fonts.google.com/icons와 같은 축(Style · Fill · Weight · Grade · Optical size). */
+/* 카탈로그 */
+.m3-icon-catalog { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; }
+.m3-icon-search { width: 320px; max-width: 100%; }
+.m3-icon-search-bar { flex: 0 1 320px; min-width: 0; }
+.m3-icon-cats { display: flex; flex-wrap: nowrap; gap: 8px; flex: none; }
+html[data-style] .preview-root .m3-icon-count { margin: 0; font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-surface-variant); }
+.m3-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px; list-style: none; margin: 0; padding: 0; width: 100%; }
+.m3-icon-controls .sample-range.m3-icon-weight { width: 280px; flex: none; }
+.m3-icon-axis-output { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); min-width: 3ch; }
+.m3-icon-grid .icon { width: var(--icon-size, 24px); height: var(--icon-size, 24px); }
+/* 변형을 받아 오는 동안 */
+.m3-icon-cell.is-loading svg { opacity: .38; }
+.m3-icon-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 12px; border-radius: var(--md-shape-md); color: var(--text); min-width: 0; }
+.m3-icon-cell:hover { background: color-mix(in srgb, var(--text) var(--state-hover), transparent); }
+.m3-icon-name { font: var(--md-type-label-small); letter-spacing: var(--md-type-label-small-tracking); color: var(--on-surface-variant); text-align: center; overflow-wrap: anywhere; max-width: 100%; }
+[data-icon-more][hidden] { display: none !important; }
+
+/* ─── Styles › Motion (m3.material.io/styles/motion) ───
+   견본 칸 · 그래프 · 트랙. 곡선 색은 글자로 쓰는 Primary(--primary-on-bg, 컨테이너 사다리 위 대비 보장). */
+.m3-motion-tiles { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; flex: none; }
+.m3-motion-tile-wrap { display: flex; flex: none; }
+.m3-motion-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  width: 144px; padding: 12px; box-sizing: border-box; border: 0;
+  border-radius: var(--md-shape-md); background: var(--surface-container-low); color: var(--text-on-container);
+  text-align: left; font: inherit;
+}
+button.m3-motion-tile { cursor: pointer; }
+button.m3-motion-tile:hover { background: color-mix(in srgb, var(--text-on-container) var(--state-hover), var(--surface-container-low)); }
+.m3-motion-name { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); }
+.m3-motion-meta { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--on-surface-variant); }
+.m3-motion-plot { width: 96px; height: 64px; margin-bottom: 4px; overflow: visible; }
+.m3-motion-guide { stroke: var(--outline-variant); stroke-width: 1; stroke-dasharray: 2 3; }
+.m3-motion-curve { fill: none; stroke: var(--primary-on-bg); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.m3-motion-dot { fill: var(--primary-on-bg); }
+.m3-motion-cursor { stroke: var(--outline-variant); stroke-width: 1; }
+.m3-motion-plot:not([data-playing]) :is(.m3-motion-dot, .m3-motion-cursor) { visibility: hidden; }
+.m3-motion-durations .m3-motion-tile { width: 120px; }
+.m3-motion-bar { display: block; height: 8px; width: calc(var(--ms) / 1000 * 96px); min-width: 2px; margin: 4px 0 8px; border-radius: var(--md-shape-full); background: var(--primary-on-bg); }
+/* 트랙과 점 — spatial은 위치, effects는 불투명도 */
+.m3-motion-demo { --motion-travel: 80px; position: relative; display: block; width: 96px; height: 24px; margin-bottom: 8px; }
+.m3-motion-demo--spatial::before { content: ""; position: absolute; left: 8px; right: 8px; top: 11px; height: 2px; border-radius: var(--md-shape-full); background: var(--outline-variant); }
+.m3-motion-dot { position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border-radius: var(--md-shape-full); background: var(--primary-on-bg); }
+.m3-motion-demo--effects .m3-motion-dot { left: 36px; top: 0; width: 24px; height: 24px; border-radius: var(--md-shape-sm); }
+/* Transitions 무대 */
+.m3-motion-patterns { display: flex; gap: 8px; flex: none; }
+.m3-motion-stage { position: relative; width: 280px; height: 200px; flex: none; overflow: hidden; border-radius: var(--md-shape-md); background: var(--surface-container-low); }
+.m3-motion-screen, .m3-motion-skeleton { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; padding: 0 0 16px; background: var(--surface-container-low); }
+.m3-motion-screen > :not(.m3-motion-bar-top):not(.m3-motion-hero), .m3-motion-skeleton > * { margin: 0 16px; }
+.m3-motion-bar-top { display: block; height: 40px; background: var(--surface-container-highest); }
+.m3-motion-bar-top--b { background: var(--secondary-container); }
+.m3-motion-line { display: block; height: 10px; border-radius: var(--md-shape-full); background: var(--outline-variant); }
+.m3-motion-line--short { width: 55%; }
+.m3-motion-card { display: block; height: 56px; width: 120px; border-radius: var(--md-shape-md); background: var(--primary-container); }
+.m3-motion-hero { display: block; height: 72px; background: var(--primary-container); }
+.m3-motion-container { position: absolute; background: var(--primary-container); }
+.m3-motion-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 112px; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; box-sizing: border-box; background: var(--surface-container-high); border-radius: var(--md-shape-xl) var(--md-shape-xl) 0 0; }
+.m3-motion-handle { align-self: center; width: 32px; height: 4px; border-radius: var(--md-shape-full); background: var(--on-surface-variant); }
+.m3-motion-skeleton { padding-top: 16px; }
+.m3-motion-bone { display: block; height: 12px; width: 60%; border-radius: var(--md-shape-xs); background: var(--surface-container-highest); }
+.m3-motion-bone--wide { width: 85%; }
+.m3-motion-bone--short { width: 40%; }
+.m3-motion-bone--block { height: 64px; width: auto; border-radius: var(--md-shape-md); }
+:is(.m3-motion-screen, .m3-motion-sheet, .m3-motion-skeleton, .m3-motion-container)[hidden] { display: none !important; }
+
+/* ─── Styles › Typography (m3.material.io/styles/typography) ───
+   견본 글자는 모두 --md-type-* 토큰(기본 15 · 강조 15). 색은 Text(on surface)와 on-surface-variant, 링크는 글자로 쓰는 Primary. */
+.m3-type-tiles { display: flex; gap: 24px; list-style: none; margin: 0; padding: 0; flex: none; align-items: flex-end; }
+.m3-type-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 96px; flex: none; }
+.m3-type-tile--wide { width: 240px; }
+.m3-type-sample { display: block; margin-bottom: 8px; color: var(--text); white-space: nowrap; }
+.m3-type-tile--wide .m3-type-sample { white-space: normal; }
+.m3-type-name { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); white-space: nowrap; }
+.m3-type-meta { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--on-surface-variant); white-space: nowrap; }
+/* 줄 높이 견본 — 줄 상자를 outline-variant 가로줄로 보여 준다(라인 높이 = 상자 높이, M3 Typesetting의 bounding box). */
+.m3-type-lines { background-image: repeating-linear-gradient(to bottom, transparent 0 calc(1lh - 1px), var(--outline-variant) calc(1lh - 1px) 1lh); }
+.m3-type-figures { text-align: end; font-variant-numeric: normal; }
+.m3-type-tabular { font-variant-numeric: tabular-nums; }
+.m3-type-color { font: var(--md-type-headline-small); letter-spacing: var(--md-type-headline-small-tracking); }
+.m3-type-link { color: var(--primary-on-bg); text-decoration: underline; text-underline-offset: 0.15em; }
+/* Live */
+.m3-type-field { width: 360px; max-width: 100%; flex: none; }
+.m3-type-live-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+html[data-style] .preview-root .m3-type-live { margin: 0; color: var(--text); white-space: nowrap; }
+.m3-type-out { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--on-surface-variant); white-space: nowrap; }
+.m3-type-range { width: 280px; flex: none; }
+/* 숫자 폭이 바뀌면 상자 폭도 바뀐다 — 비례 숫자의 흔들림(layout shift)을 outline 테두리로 보여 준다. */
+.m3-type-clock { display: inline-block; padding: 0 var(--md-space-100); border: 1px solid var(--outline); border-radius: var(--md-shape-xs); font: var(--md-type-display-small); letter-spacing: var(--md-type-display-small-tracking); color: var(--text); font-variant-numeric: normal; }
+.m3-type-clock[data-tabular] { font-variant-numeric: tabular-nums; }
+
+/* ─── Styles › States (m3.material.io/foundations/interaction/states) ───
+   상태 레이어 = 콘텐츠 색(--o)을 --p 불투명도로 컨테이너(--c) 위에 섞는다. 값은 --md-state-*(tokens.css). */
+.m3-state-tiles { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; flex: none; align-items: flex-end; }
+.m3-state-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 96px; flex: none; }
+.m3-state-name { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); white-space: nowrap; }
+.m3-state-meta { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--on-surface-variant); white-space: nowrap; }
+.m3-state-box, .m3-state-chip, .m3-state-card, .m3-state-target {
+  --p: 0%;
+  background: color-mix(in srgb, var(--o) var(--p), var(--c));
+  color: var(--o);
+}
+.m3-state-box { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 120px; height: 56px; margin-bottom: 8px; border-radius: var(--md-shape-md); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); }
+/* 테두리가 없는 Surface 칸은 경계를 outline-variant로 보인다 */
+.m3-state-box[data-pair="surface"] { box-shadow: inset 0 0 0 1px var(--outline-variant); }
+.m3-state-box--live { width: 200px; height: 72px; margin: 0; transition: background-color var(--md-duration-short2) linear; }
+.m3-state-live-wrap { display: flex; align-items: center; gap: 16px; }
+.m3-state-out { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--on-surface-variant); white-space: nowrap; }
+/* 포커스 표시(md-focus-ring): 바깥 링은 outline, 안쪽 링은 inset 그림자 */
+.m3-state-ring-out { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-state-ring-in { box-shadow: inset 0 0 0 var(--md-focus-ring-width) var(--md-focus-ring-color); }
+/* 대상 크기: 상태 레이어 40dp 원 · 터치 대상 48dp */
+.m3-state-target-size { position: relative; display: grid; place-items: center; box-sizing: border-box; width: 48px; height: 48px; margin: 0 0 8px; border: 1px dashed var(--outline); }
+.m3-state-target-size > span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--md-shape-full); background: color-mix(in srgb, var(--on-surface-variant) var(--md-state-hover), transparent); color: var(--on-surface-variant); }
+.m3-state-target-size .icon { width: 24px; height: 24px; }
+/* Applying states 견본 */
+.m3-state-pill { display: inline-flex; align-items: center; box-sizing: border-box; height: 40px; margin-bottom: 8px; padding: 0 var(--md-space-300); border-radius: var(--md-shape-full); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); }
+.m3-state-pill--filled { background: var(--text-disabled-container); color: var(--text-disabled); }
+.m3-state-pill--outlined { border: 1px solid var(--text-disabled-container); color: var(--text-disabled); }
+.m3-state-pill--text { padding: 0 var(--md-space-150); color: var(--text-disabled); }
+.m3-state-pill--enabled { background: var(--primary); color: var(--on-primary); }
+.m3-state-field { display: flex; align-items: center; box-sizing: border-box; width: 160px; height: 56px; margin-bottom: 8px; padding: 0 var(--md-space-200); border-radius: var(--md-shape-xs); background: var(--surface-container-highest); color: var(--text-on-container); font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); }
+.m3-state-chip { --c: var(--secondary-container); --o: var(--on-secondary-container); display: inline-flex; align-items: center; gap: var(--md-space-100); box-sizing: border-box; height: 32px; margin-bottom: 8px; padding: 0 var(--md-space-200) 0 var(--md-space-100); border-radius: var(--md-shape-sm); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); }
+.m3-state-chip .icon { width: 18px; height: 18px; }
+.m3-state-card { --c: var(--surface-container-low); --o: var(--text-on-container); display: flex; align-items: center; gap: var(--md-space-100); box-sizing: border-box; width: 120px; height: 80px; margin-bottom: 8px; padding: var(--md-space-200); border-radius: var(--md-shape-md); font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); }
+/* Live — 실제 포인터 · 키보드 상태. 한 번에 한 레이어(뒤 규칙이 이긴다: hover < focus < pressed < dragged). */
+.m3-state-play { display: flex; align-items: center; gap: 24px; flex: none; }
+.m3-state-play .m3-state-out { white-space: pre; }
+.m3-state-target { --c: var(--secondary-container); --o: var(--on-secondary-container); height: 40px; padding: 0 var(--md-space-300); border: 0; border-radius: var(--md-shape-full); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); cursor: pointer; transition: background-color var(--md-duration-short2) linear; }
+.m3-state-target:hover { --p: var(--md-state-hover); }
+.m3-state-target:focus-visible { --p: var(--md-state-focus); }
+.m3-state-target:active { --p: var(--md-state-pressed); }
+.m3-state-target:disabled { background: var(--text-disabled-container); color: var(--text-disabled); cursor: default; }
+.m3-state-track { position: relative; width: 320px; height: 96px; flex: none; border-radius: var(--md-shape-lg); box-shadow: inset 0 0 0 1px var(--outline-variant); }
+.m3-state-card--drag { position: absolute; top: 8px; left: 8px; margin: 0; box-shadow: var(--md-elevation-1); cursor: grab; touch-action: none; user-select: none; transform: translateX(var(--x, 0px)); transition: background-color var(--md-duration-short2) linear, box-shadow var(--md-duration-short4) var(--md-easing-standard); }
+.m3-state-card--drag .icon { width: 24px; height: 24px; flex: none; }
+.m3-state-card--drag:hover { --p: var(--md-state-hover); box-shadow: var(--md-elevation-2); }
+.m3-state-card--drag:focus-visible { --p: var(--md-state-focus); }
+.m3-state-card--drag:active { --p: var(--md-state-pressed); }
+.m3-state-card--drag[data-dragged] { --p: var(--md-state-dragged); box-shadow: var(--md-elevation-4); cursor: grabbing; }
+.m3-state-card--drag[aria-disabled="true"] { background: var(--text-disabled-container); color: var(--text-disabled); box-shadow: none; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .m3-state-box--live, .m3-state-target, .m3-state-card--drag { transition: none; } }
+
+/* ─── Styles › Color (m3.material.io/styles/color) ───
+   칸마다 역할 색을 칠하고 이름을 짝 역할 색으로 찍는다(M3 Color roles 도표와 같은 방식).
+   한 줄(계열)의 칸은 붙여서 한 덩어리로 읽히게 하고, 줄은 넘치면 가로로 스크롤한다. */
+.m3-color-tiles {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--md-shape-md);
+  overflow: hidden;
+  flex: none;
+}
+.m3-color-tile {
+  display: flex;
+  align-items: flex-end;
+  width: 128px;
+  min-height: 72px;
+  padding: 12px;
+  box-sizing: border-box;
+  flex: none;
+}
+.m3-color-tile-name {
+  font: var(--md-type-label-large);
+  letter-spacing: var(--md-type-label-large-tracking);
+}
+/* 선 역할은 칠하는 색이 아니라 선 색이다 — Surface 칸에 그 색의 테두리로 보인다. */
+.m3-color-tile[data-outline] { border: 2px solid; border-radius: var(--md-shape-md); }
+.m3-color-tiles:has(> [data-outline]) { gap: 8px; overflow: visible; border-radius: 0; }
+/* 톤 팔레트: 톤 14단계를 좁은 칸으로 */
+.m3-tone-tiles .m3-color-tile { width: 48px; min-height: 56px; padding: 8px; }
+.m3-tone-tiles .m3-color-tile-name { font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); }
+/* Static colors Live — 입력 색 · Harmonize */
+.m3-static-controls { gap: 24px; }
+.m3-static-input { display: inline-flex; align-items: center; gap: 12px; color: var(--text); font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); }
+.m3-static-input input[type="color"] {
+  inline-size: 48px;
+  block-size: 48px;
+  padding: 0;
+  border: 1px solid var(--outline);
+  border-radius: var(--md-shape-full);
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+.m3-static-input input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.m3-static-input input[type="color"]::-webkit-color-swatch { border: 0; border-radius: var(--md-shape-full); }
+.m3-static-input input[type="color"]::-moz-color-swatch { border: 0; border-radius: var(--md-shape-full); }
+/* 견본 행의 스위치 옆 글자(Static colors Harmonize · Spacing Focused) */
+.btn-spec-row .toggle-wrap > span { font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--text); }
+
+/* ─── Buttons 베리언츠 갤러리 (Components › Actions) ─────────────── */
+.btn-spec-scroll { overflow-x: auto; max-width: 100%; }
+.btn-spec-table { border-collapse: collapse; font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--text); }
+.btn-spec-table th { font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); color: var(--on-surface-variant); text-align: left; white-space: nowrap; }   /* 행 머리 .btn-spec-label과 같은 글자 */
+.btn-spec-table thead th { padding: 0 12px 10px 0; border-bottom: 1px solid var(--border-bg); }
+.btn-spec-table tbody th,
+.btn-spec-table td { padding: 12px 12px 12px 0; vertical-align: middle; }
+.btn-spec-table tbody tr + tr > * { border-top: 1px solid var(--border-bg); }
+
+
+/* 한 줄 유지 — 폭이 모자라면 줄바꿈 대신 가로 스크롤. 포커스 링·그림자가 잘리지 않게 안쪽 여백을 둔다. */
+.btn-spec-row { display: flex; flex-wrap: nowrap; align-items: flex-end; gap: 16px; overflow-x: auto; padding: 6px 0 6px 6px; margin: -6px 0 -6px -6px; max-width: calc(100% + 6px); }
+.btn-spec-row > * { flex: none; }
+.btn-spec-row + .btn-spec-row { margin-top: 10px; }
+.btn-spec-fig { margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.btn-spec-fig figcaption { font: var(--md-type-label-small); letter-spacing: var(--md-type-label-small-tracking); color: var(--text); }
+.btn-spec-toggle .btn-spec-row { align-items: center; gap: 12px; }
+.btn-spec-toggle .btn-spec-row + .btn-spec-row { margin-top: 6px; }
+/* 줄 이름(Configurations · States 행 머리) — 모든 컴포넌트가 같은 모양을 쓴다 */
+.btn-spec-label { width: 144px; flex: none; white-space: nowrap; font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); color: var(--on-surface-variant); }
+/* 버튼 견본 줄은 미리보기 안에서 세로로 쌓고, 각 줄은 미리보기 폭 안에서 가로 스크롤한다. */
+.pl-item-preview:has(> .btn-spec-row) { flex-direction: column; align-items: stretch; }
+#buttons-variants .pl-item-preview { gap: 24px; }
+
+/* 버튼 그룹 견본 — 크기·형태·상태 블록을 세로로 쌓는다 */
+.pl-item-preview:is(:has(> .btn-spec-block), :has(> .saving-ui)) { flex-direction: column; align-items: stretch; gap: 28px; }
+.btn-spec-block { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.btn-spec-block > .btn-spec-row { margin: 0; align-items: center; }
+.btn-spec-heading { font: var(--md-type-emphasized-label-medium); letter-spacing: var(--md-type-emphasized-label-medium-tracking); color: var(--text); }
+
+/* ─── Actions 보기 전환 바 ─────────────────────────────────── */
+.view-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; margin: 0 0 32px; }
+.view-control { display: flex; align-items: center; gap: 10px; }
+.view-control-label { font: var(--md-type-emphasized-label-medium); letter-spacing: var(--md-type-emphasized-label-medium-tracking); color: var(--text); }
+
+/* 색 필터 — 고른 색의 견본만 남긴다. Text를 지원하지 않는 컴포넌트(토글·그룹)는 숨긴다. */
+[data-view-color="elevated"] [data-view-target] [data-color]:not([data-color="elevated"]),
+[data-view-color="filled"]   [data-view-target] [data-color]:not([data-color="filled"]),
+[data-view-color="tonal"]    [data-view-target] [data-color]:not([data-color="tonal"]),
+[data-view-color="outlined"] [data-view-target] [data-color]:not([data-color="outlined"]),
+[data-view-color="text"]     [data-view-target] [data-color]:not([data-color="text"]),
+[data-view-color="text"] [data-no-text] { display: none; }
+[data-view-color="elevated"] [data-no-elevated] { display: none; }   /* 아이콘 버튼 · FAB에는 Elevated가 없다 */
+
+/* 아이콘 끄기 */
+[data-view-icon="off"] [data-view-target] .btn:not([data-icon-only]):not([data-keep-icon]) svg.icon-symbol { display: none; }
+
+/* Button 문서형 블록(Types · Usage · Icon · Accessibility) */
+html[data-style] .preview-root .btn-spec-heading { font: var(--md-type-emphasized-label-medium); margin: 0; color: var(--text); letter-spacing: var(--md-type-emphasized-label-medium-tracking); }
+.btn-spec-toolbar { display: inline-flex; gap: 4px; }
+html[data-style] .preview-root a.btn { color: var(--btn-label); text-decoration: none; }
+
+/* ─── Components 탭: M3 컴포넌트 메뉴(한 줄 목록) + 선택한 컴포넌트 ─────────── */
+/* 하위 메뉴(.pl-comp-nav)는 스크립트가 사이드바 위 칸(#pl-side-menu)으로 옮긴다. 패널은 본문 한 열이다. */
+#panel-components.active,
+#panel-styles.active,
+#panel-layout.active,
+#panel-pages.active { display: flex; flex-direction: column; gap: 28px; }
+:is(#panel-components, #panel-styles, #panel-layout, #panel-pages) > .pl-section { margin-bottom: 0; }
+.pl-comp-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.pl-comp-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--md-space-200);
+  border-radius: var(--md-shape-full);
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  font: var(--md-type-label-large);
+  letter-spacing: var(--md-type-label-large-tracking);
+}
+/* 절감 등급 표시(2026-11-17) — 동그라미 안 글자. 색으로 구분하지 않고 글자로 알린다. */
+.pl-grade { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; border: 1px solid currentColor; border-radius: var(--md-shape-full); font: var(--md-type-label-small); font-weight: 600; letter-spacing: 0; line-height: 1; font-variant-numeric: tabular-nums; }
+.pl-comp-nav a > .pl-grade { margin-inline-start: auto; }
+.pl-item-name > .pl-grade { margin-inline-start: 8px; vertical-align: middle; cursor: help; }
+.pl-item-name > .pl-grade:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.pl-comp-nav a:hover { background: color-mix(in srgb, var(--text) var(--state-hover), transparent); }
+.pl-comp-nav a[aria-current="page"] { background: var(--secondary-container); color: var(--on-secondary-container); font: var(--md-type-emphasized-label-large); letter-spacing: var(--md-type-emphasized-label-large-tracking); }
+
+/* 페이지 머리 — 스크롤 컨테이너(#library-preview) 위쪽, 라이브러리 헤더 바로 아래에 붙는다.
+   견본을 내려 보면서도 보기 옵션을 바로 바꿀 수 있게 한다. */
+.pl-comp-page {
+  position: sticky;
+  top: var(--pl-header-h, 64px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--md-space-150) 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--outline-variant);
+}
+html[data-style] .preview-root .pl-comp-title { font: var(--type-headline); margin: 0; color: var(--text); }
+/* 보기 옵션 서랍 — 접힘 ↔ 펼침을 높이(grid 0fr ↔ 1fr)로 전환한다. 접힌 서랍은 inert(Tab 제외). */
+.pl-comp-controls { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--md-duration-medium2) var(--md-easing-emphasized); }
+.pl-comp-controls[data-open] { grid-template-rows: 1fr; }
+.pl-comp-controls-inner { min-height: 0; overflow: hidden; margin: 0 -8px; padding: 0 8px 6px; }   /* 좌우 · 아래 여백 = 포커스 링(간격 2 + 두께 3)이 잘리지 않게 */
+/* 좁은 화면에서 한 축의 선택지가 폭을 넘으면 그 줄만 가로로 스크롤한다 */
+@media (max-width: 600px) {
+  .pl-comp-controls-inner .view-control { min-width: 0; max-width: 100%; }
+  .pl-comp-controls-inner .view-control > .btn-group-connected { overflow-x: auto; padding: 6px; margin: -6px; scrollbar-width: none; }
+}
+.pl-comp-controls-inner > .view-controls { margin: 0; padding-top: var(--md-space-150); }
+.pl-comp-controls-toggle {
+  display: inline-flex; align-items: center; gap: var(--md-space-100);
+  min-height: 40px; max-width: 100%; margin-inline-start: auto; padding: 0 var(--md-space-150) 0 var(--md-space-200);
+  border: 1px solid var(--outline-variant); border-radius: var(--md-shape-full);
+  background: transparent; color: var(--text); cursor: pointer;
+  font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking);
+  position: relative; isolation: isolate;
+}
+.pl-comp-controls-toggle::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; z-index: -1; transition: opacity var(--md-duration-short2) var(--md-easing-standard); }
+.pl-comp-controls-toggle:hover::after { opacity: var(--md-state-hover); }
+.pl-comp-controls-toggle:active::after { opacity: var(--md-state-pressed); }
+.pl-comp-controls-toggle[aria-expanded="true"] { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+html[data-style] .preview-root .pl-comp-controls-toggle svg.icon-symbol,
+.pl-comp-controls-toggle svg.icon-symbol { width: 18px; height: 18px; flex: none; fill: currentColor; stroke: none; }
+.pl-comp-controls-summary { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--on-surface-variant); font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); }
+.pl-comp-controls-toggle[aria-expanded="true"] .pl-comp-controls-summary { color: inherit; }
+.pl-comp-controls-chevron { transition: transform var(--md-duration-short4) var(--md-easing-standard); }
+.pl-comp-controls-toggle[aria-expanded="true"] .pl-comp-controls-chevron { transform: rotate(180deg); }
+.pl-comp-controls-toggle[hidden], .pl-comp-controls[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .pl-comp-controls, .pl-comp-controls-chevron { transition: none; } }
+@media (max-width: 600px) { .pl-comp-controls-summary { display: none; } }
+/* 제목 줄 — 제목 옆 도구(data-placement="title") */
+.pl-comp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.pl-comp-head > .view-controls { margin: 0; }
+.pl-comp-empty { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.pl-comp-empty p { flex-basis: 100%; margin: 0; }
+
+/* 메뉴 제목이 페이지 제목을 맡으므로 카테고리 제목은 숨기고, 항목 이름은 소제목으로 */
+:is(#panel-components, #panel-styles, #panel-layout, #panel-pages) .pl-section-title { display: none; }
+:is(#panel-components, #panel-styles, #panel-layout, #panel-pages) .pl-items { gap: 40px; }
+:is(#panel-components, #panel-styles, #panel-layout, #panel-pages) .pl-item { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+:is(#panel-components, #panel-styles, #panel-layout, #panel-pages) .pl-items > .pl-item + .pl-item { padding-top: 0; border-top: 0; }
+html[data-style] .preview-root :is(#panel-components, #panel-styles, #panel-layout, #panel-pages) .pl-item-name { font: var(--type-title); margin: 0; }
+
+
+/* hidden 속성이 .pl-item의 display:grid에 지지 않게 한다 */
+:is(#panel-components, #panel-styles, #panel-layout, #panel-pages) :is(.pl-item, .pl-section, .view-controls, .pl-comp-empty)[hidden] { display: none !important; }
+/* 표의 첫 열을 행 머리(.btn-spec-label)와 같은 가로 위치에 맞춘다(견본 줄은 포커스 링을 위해 왼쪽 6px 여백) */
+.btn-spec-table th:first-child { padding-left: 6px; }
+
+/* Live 데모 값(수량 · 곡 번호 · 개수) — 견본 옆 본문 글자(2026-10-04) */
+.m3-live-value { min-width: 3ch; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text); font-variant-numeric: tabular-nums; text-align: center; }

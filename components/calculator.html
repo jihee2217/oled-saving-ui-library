@@ -1,0 +1,184 @@
+<!-- aside의 암묵적 role이 complementary이므로 role 속성을 덧붙이지 않는다(기준서 MKP-03). -->
+<aside id="floating-calc" aria-label="BW Index 계산기">
+
+
+  <div id="calc-body">
+
+    <!-- 어두운/밝은 절감형 — 아이콘 토글(2026-09-28), 계산기 맨 위 -->
+    <div class="calc-mode-row"><span class="calc-section-label" aria-hidden="true">모드</span>
+      <div class="preset-buttons" role="group" aria-label="모드">
+        <button class="preset-btn active" data-preset="dark-saving" id="preset-dark" aria-pressed="true"
+          aria-label="어두운 절감형" data-tip="어두운 절감형 — 블랙 배경 · 어두운 표면"><svg class="calc-icon icon-symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z"/></svg></button>
+        <button class="preset-btn" data-preset="light-saving" id="preset-light" aria-pressed="false"
+          aria-label="밝은 절감형" data-tip="밝은 절감형 — 오프화이트 · 밝은 표면"><svg class="calc-icon icon-symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M480-360q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0 80q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- 현재 디자인의 색상 토큰별 BW Index -->
+    <div id="calc-stats" role="status" aria-live="polite" aria-label="색상 토큰별 BW Index">
+      <div class="calc-head-row"><span class="calc-section-label">BW Index</span><button type="button" class="calc-help" data-help="help-bw" aria-label="BW Index 도움말" aria-describedby="help-bw"><svg class="calc-help-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button></div>
+      <div class="calc-help-src" id="help-bw" hidden>색상별 BW Index · 검정 0 / 흰색 1. 화면 전체의 전력이나 BW를 측정한 값은 아닙니다.</div>
+      <div class="token-results"><div class="token-result"><span>Primary</span><output data-bw-summary="accent">—</output></div>
+<div class="token-result"><span>Background</span><output data-bw-summary="bg">—</output></div>
+
+<div class="token-result"><span>Text</span><output data-bw-summary="text">—</output></div>
+</div>
+    </div>
+
+    <!-- 대비 수준 (Material 3단계) — 세 단계를 나란히 두고 그중에서 고른다 -->
+    <div id="calc-contrast-level">
+      <fieldset class="level-compare">
+        <legend class="calc-section-label">대비 수준 <button type="button" class="calc-help" data-help="help-contrast" aria-label="대비 수준 도움말" aria-describedby="help-contrast"><svg class="calc-help-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button></legend>
+        <div class="calc-help-src" id="help-contrast" hidden><span>본문 최소 대비 <output id="stat-contrast">계산 중</output></span> <span id="stat-headroom">여유분 계산 중</span> <span id="contrast-level-note"></span> <span id="contrast-level-result"></span></div>
+        <!-- 대비 수준 슬라이더(2026-09-28) — 기본 · 중간 · 높음 세 칸. 아래 라디오는 상태 보관용으로 숨긴다.
+             어떤 수준이 목표를 못 채우면 그 눈금에만 빨간 점(마우스 올림 설명)이 붙는다. -->
+        <div class="level-slider">
+          <input type="range" id="contrast-slider" min="0" max="2" step="1" value="0" aria-label="대비 수준" aria-valuetext="기본" />
+          <div class="level-ticks" aria-hidden="true"><span class="level-tick" data-level="standard">기본</span><span class="level-tick" data-level="medium">중간</span><span class="level-tick" data-level="high">높음</span></div>
+        </div>
+        <div class="level-options">
+          <label class="level-option" data-level="standard">
+            <input type="radio" name="contrast-level" value="standard" checked />
+            <span class="level-heading"><span class="level-name">기본</span><span class="level-wcag">AA</span></span>
+            <span class="level-target"><span class="level-target-body">본문 4.5:1</span><br /><span class="level-target-nontext">비텍스트 3:1</span></span>
+            <span class="level-swatches" aria-hidden="true"><span class="level-swatch" data-swatch="bg"></span><span class="level-swatch" data-swatch="text"></span><span class="level-swatch" data-swatch="accent"></span></span>
+            <span class="level-delta">—</span>
+            <span class="level-warn"></span>
+          </label>
+          <label class="level-option" data-level="medium">
+            <input type="radio" name="contrast-level" value="medium" />
+            <span class="level-heading"><span class="level-name">중간</span><span class="level-wcag">AAA</span></span>
+            <span class="level-target"><span class="level-target-body">본문 7:1</span><br /><span class="level-target-nontext">비텍스트 4.5:1</span></span>
+            <span class="level-swatches" aria-hidden="true"><span class="level-swatch" data-swatch="bg"></span><span class="level-swatch" data-swatch="text"></span><span class="level-swatch" data-swatch="accent"></span></span>
+            <span class="level-delta">—</span>
+            <span class="level-warn"></span>
+          </label>
+          <label class="level-option" data-level="high">
+            <input type="radio" name="contrast-level" value="high" />
+            <span class="level-heading"><span class="level-name">높음</span><span class="level-wcag">AAA</span></span>
+            <span class="level-target"><span class="level-target-body">본문 11:1</span><br /><span class="level-target-nontext">비텍스트 7:1</span></span>
+            <span class="level-swatches" aria-hidden="true"><span class="level-swatch" data-swatch="bg"></span><span class="level-swatch" data-swatch="text"></span><span class="level-swatch" data-swatch="accent"></span></span>
+            <span class="level-delta">—</span>
+            <span class="level-warn"></span>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <!-- 디자인 토큰 슬라이더 -->
+    <div id="calc-tokens">
+      <p class="calc-section-label" style="padding: 0 0 6px;">디자인 토큰</p>
+
+      <!-- Primary/Accent 토큰 -->
+      <div class="token-section open" data-token="accent">
+        <button type="button" class="token-header" aria-expanded="true" aria-controls="token-body-accent">
+          <div class="token-header-left">
+            <div class="token-swatch" id="swatch-accent" aria-hidden="true"></div>
+            <span class="token-name">Primary / Accent</span>
+          </div>
+          <div class="token-header-right">
+            <code class="token-hex" id="hex-accent">#—</code>
+            <span class="token-bw" id="bw-accent">BW —</span>
+            <span class="token-chevron" aria-hidden="true">›</span>
+          </div>
+        </button>
+        <div class="token-body" id="token-body-accent">          <div class="palette-row">
+            <input type="range" class="range-slider hue-slider" id="picker-accent" min="0" max="360" step="any" aria-label="Primary 색상" />
+            <output class="token-color-code" aria-label="Primary 최종 색상"></output>
+            <button type="button" class="eyedropper-btn" aria-label="Primary 화면 색상 추출">스포이드</button>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">채도</span>
+            <input type="range" class="range-slider slider-s" min="0" max="100" step="any" aria-label="Primary 채도" />
+            <span class="slider-val slider-val-s"></span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">명도 <button type="button" class="calc-help" data-help="help-accent" aria-label="Primary 도움말" aria-describedby="help-accent"><svg class="calc-help-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button></span>
+            <input type="range" class="range-slider slider-l" id="slider-accent-l" min="0" max="100" step="any" aria-label="Primary 명도" />
+            <span class="slider-val slider-val-l"></span>
+          </div>
+          <div class="slider-marks" aria-hidden="true"><span class="mark-target"></span><span class="mark-current"></span></div>
+          <p class="picker-message" aria-live="polite"></p>
+        
+          <div class="calc-help-src" id="help-accent" hidden><span class="calc-help-line">색상 · 채도 · 명도를 각각 조절합니다.</span> <span class="calc-help-line token-gate"><span class="gate-item">허용 명도 <output class="gate-range">—</output></span></span> <span class="calc-help-line hct-readout">Material HCT <output class="token-hct">—</output><span class="hct-note">참고 표시 전용 · 조작은 HSL 기준</span></span> <span class="calc-help-line primary-text-status"><output data-primary-text-status>—</output></span></div></div>
+      </div>
+
+      <!-- Background 토큰 -->
+      <div class="token-section" data-token="bg">
+        <button type="button" class="token-header" aria-expanded="false" aria-controls="token-body-bg">
+          <div class="token-header-left">
+            <div class="token-swatch" id="swatch-bg" aria-hidden="true"></div>
+            <span class="token-name">Background</span>
+          </div>
+          <div class="token-header-right">
+            <code class="token-hex" id="hex-bg">#—</code>
+            <span class="token-bw" id="bw-bg">BW —</span>
+            <span class="token-chevron" aria-hidden="true">›</span>
+          </div>
+        </button>
+        <div class="token-body" id="token-body-bg">
+          <div class="slider-row">
+            <span class="slider-label">명도 <button type="button" class="calc-help" data-help="help-bg" aria-label="Background 도움말" aria-describedby="help-bg"><svg class="calc-help-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button></span>
+            <input type="range" class="range-slider slider-l" id="slider-bg-l" min="0" max="100" step="any" aria-label="Background 명도" />
+            <span class="slider-val slider-val-l"></span>
+          </div>
+          <div class="slider-marks" aria-hidden="true"><span class="mark-target"></span><span class="mark-current"></span></div>
+        
+          <div class="calc-help-src" id="help-bg" hidden><span class="calc-help-line">명도만 조절합니다. 색상 · 채도는 Primary에서 따라옵니다.</span> <span class="calc-help-line token-gate"><span class="gate-item">허용 명도 <output class="gate-range">—</output></span></span> <span class="calc-help-line hct-readout">Material HCT <output class="token-hct">—</output><span class="hct-note">참고 표시 전용 · 조작은 HSL 기준</span></span></div></div>
+      </div>
+
+
+
+      <!-- Text 토큰 -->
+      <div class="token-section" data-token="text">
+        <button type="button" class="token-header" aria-expanded="false" aria-controls="token-body-text">
+          <div class="token-header-left">
+            <div class="token-swatch" id="swatch-text" aria-hidden="true"></div>
+            <span class="token-name">Text</span>
+          </div>
+          <div class="token-header-right">
+            <code class="token-hex" id="hex-text">#—</code>
+            <span class="token-bw" id="bw-text">BW —</span>
+            <span class="token-chevron" aria-hidden="true">›</span>
+          </div>
+        </button>
+        <div class="token-body" id="token-body-text">
+          <div class="slider-row">
+            <span class="slider-label">명도 <button type="button" class="calc-help" data-help="help-text" aria-label="Text 도움말" aria-describedby="help-text"><svg class="calc-help-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button></span>
+            <input type="range" class="range-slider slider-l" id="slider-text-l" min="0" max="100" step="any" aria-label="Text 명도" />
+            <span class="slider-val slider-val-l"></span>
+          </div>
+          <div class="slider-marks" aria-hidden="true"><span class="mark-target"></span><span class="mark-current"></span></div>
+          <p class="picker-message" aria-live="polite"></p>
+        
+          <div class="calc-help-src" id="help-text" hidden><span class="calc-help-line">명도만 조절합니다. 색상 · 채도는 Primary에서 따라오고, 보조 글 · 컨테이너 위 글 · 비활성 · 반전 글자가 이 명도를 따라 함께 바뀝니다.</span> <span class="calc-help-line token-gate"><span class="gate-item">허용 명도 <output class="gate-range">—</output></span></span> <span class="calc-help-line hct-readout">Material HCT <output class="token-hct">—</output><span class="hct-note">참고 표시 전용 · 조작은 HSL 기준</span></span></div></div>
+      </div>
+
+    </div><!-- /calc-tokens -->
+
+    <!-- 디자인 토큰 내보내기 (W3C DTCG) -->
+    <div id="calc-export">
+      <div class="calc-head-row"><button type="button" class="calc-export-btn" id="btn-export-dtcg">Figma 토큰 내보내기 (.zip)</button><button type="button" class="calc-help" data-help="help-export" aria-label="내보내기 도움말" aria-describedby="help-export"><svg class="calc-help-icon" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button></div>
+      <div class="calc-help-src" id="help-export" hidden>어두운 · 밝은 × 대비 3단계 색(Figma 모드 6개)과 간격 · 모서리 · 타입 스케일 · 상태 · 모션 토큰을 W3C Design Tokens 형식으로 묶어 저장합니다. Figma 변수 패널에 바로 가져올 수 있고, 글자 · 그림자 스타일은 styles.tokens.json에 따로 들어 있습니다.</div>
+      <!-- 초기화 — 맨 아래, 내보내기 밑(2026-09-28). 지우는 조작이라 확인 대화상자를 거친다. -->
+      <button type="button" class="calc-reset-btn" id="btn-reset" aria-haspopup="dialog"
+        aria-label="조정한 값 모두 초기화" data-tip="조정한 값 모두 초기화">
+        <svg class="calc-icon icon-symbol" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="M440-122q-121-15-200.5-105.5T160-440q0-66 26-126.5T260-672l57 57q-38 34-57.5 79T240-440q0 88 56 155.5T440-202v80Zm80 0v-80q87-16 143.5-83T720-440q0-100-70-170t-170-70h-3l44 44-56 56-140-140 140-140 56 56-44 44h3q134 0 227 93t93 227q0 121-79.5 211.5T520-122Z"/></svg><span class="calc-reset-label">초기화</span>
+      </button>
+    </div>
+
+  </div><!-- /calc-body -->
+
+</aside>
+
+  <!-- 초기화 확인 — 네이티브 dialog라 Escape 닫기·포커스 가둠·최상위 레이어가 기본 제공된다.
+       계산기 패널 안에 두면 안 된다. 패널의 backdrop-filter가 고정 위치 자손의 기준 상자를
+       만들어서, 화면 가운데가 아니라 패널 안쪽(오른쪽 위)에 뜬다. 그래서 패널 밖에 둔다. -->
+  <dialog id="reset-dialog" class="calc-dialog" aria-labelledby="reset-dialog-title">
+    <h2 class="calc-dialog-title" id="reset-dialog-title">조정한 값을 모두 초기화할까요?</h2>
+    <p class="calc-dialog-body">어두운·밝은 모드에서 조정한 값과 공유 Primary, 대비 수준이 프리셋 기본값으로 돌아갑니다. 되돌릴 수 없습니다.</p>
+    <div class="calc-dialog-actions">
+      <button type="button" class="calc-dialog-btn" id="reset-cancel">취소</button>
+      <button type="button" class="calc-dialog-btn is-danger" id="reset-confirm">초기화</button>
+    </div>
+  </dialog>

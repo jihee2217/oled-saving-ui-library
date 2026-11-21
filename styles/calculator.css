@@ -1,0 +1,1009 @@
+/**
+ * calculator.css
+ * 플로팅 계산기 패널 스타일 (흰색 베이스)
+ * PRD FR-6: 메인 계산기 화면
+ */
+
+/* ════════════════════════════════════════
+   루트 레이아웃
+   ════════════════════════════════════════ */
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* ─── UI 시스템 미리보기 (전체 화면) ─── */
+#preview-area {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* ════════════════════════════════════════
+   플로팅 계산기 패널
+   ════════════════════════════════════════ */
+
+#floating-calc {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 360px;
+  /* 접기 기능을 없앤 뒤 패널이 뷰포트의 95~96%를 차지해 본문을 계속 덮었다.
+     내용이 길어도 화면의 3/4을 넘지 않게 묶고, 나머지는 calc-body가 스크롤한다. */
+  max-height: min(720px, calc(100vh - 40px), 78vh);
+  /* ── 글래스모피즘 ──
+     반투명 표면 + 배경 블러. 위에 얹힌 글자의 대비는 tokens.css 주석 참고. */
+  /* 바탕색 위에 옅은 사선 광택을 얹어, 뒤에 비칠 내용이 없을 때도 유리처럼 읽히게 한다. */
+  background-color: var(--calc-bg);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.04) 60%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 20px;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.30),
+    0 2px 8px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+  transition: width var(--transition-base), opacity var(--transition-base);
+  user-select: none;
+}
+
+#floating-calc.is-dragging {
+  transition: none;
+  opacity: 0.95;
+  cursor: grabbing;
+}
+
+/* ─── 계산기 헤더 (드래그 핸들) ─── */
+#calc-header {
+  display: flex;
+  align-items: center;
+  gap: var(--calc-space-2);
+  padding: var(--calc-space-4) var(--calc-space-4);
+  cursor: grab;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--calc-border);
+  background: linear-gradient(135deg,
+      rgba(32, 32, 32, 0.04) 0%,
+      rgba(32, 32, 32, 0.01) 100%);
+}
+
+#calc-header:active {
+  cursor: grabbing;
+}
+
+/* 헤더에 토글이 들어오면서 제목 칸이 좁아질 수 있다. 넘칠 때만 줄인다. */
+
+/* ─── 계산기 바디 ─── */
+#calc-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(32, 32, 32, 0.10) transparent;
+}
+
+#calc-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+#calc-body::-webkit-scrollbar-thumb {
+  background: rgba(32, 32, 32, 0.10);
+  border-radius: 2px;
+}
+
+/* ════════════════════════════════════════
+   상단 스탯 배지 (FR-3, FR-4)
+   ════════════════════════════════════════ */
+
+#calc-stats {
+  padding: var(--calc-space-3) var(--calc-space-4);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--calc-space-2);
+  border-bottom: 1px solid var(--calc-border);
+}
+
+/* ════════════════════════════════════════
+   프리셋 선택 영역
+   ════════════════════════════════════════ */
+
+.calc-section-label {
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  font-weight: 600;
+  color: var(--calc-text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* ─── 프리셋 토글 ───
+   두 절감형 중 하나만 켜지는 세그먼트 컨트롤. 계산기 헤더에 얹혀 있어
+   패널을 접어도 프리셋은 그대로 바꿀 수 있다. */
+.preset-buttons {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--calc-border);
+  background: var(--calc-surface);
+}
+
+.preset-btn {
+  min-height: 24px;
+  /* WCAG 2.5.8 목표 크기 */
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--calc-text-dim);
+  font-family: var(--font-sans);
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.preset-btn:hover {
+  color: var(--calc-text);
+  background-color: rgba(32, 32, 32, 0.08);
+}
+
+/* 선택 표시는 색만이 아니라 채움과 굵기로도 구분된다(기준서 ACC-02). */
+.preset-btn.active {
+  background: var(--calc-accent);
+  color: var(--calc-on-accent);
+  font-weight: 600;
+}
+
+.preset-btn.active:hover {
+  background: color-mix(in srgb, var(--calc-bg) var(--state-hover), var(--calc-accent));
+  color: var(--calc-on-accent);
+}
+
+/* ─── 헤더 아이콘 버튼 (초기화) ─── */
+.calc-icon-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--calc-text-dim);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.calc-icon-btn:hover {
+  background-color: rgba(32, 32, 32, 0.10);
+  color: var(--calc-text);
+}
+
+.calc-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+/* 툴팁 — 마우스 호버와 키보드 포커스 모두에서 뜬다. 오른쪽 끝에 붙여 왼쪽으로 자란다. */
+
+/* ─── 초기화 확인 대화상자 ─── */
+.calc-dialog {
+  /* atoms.css 의 `*, *::before, *::after { margin: 0 }` 전역 초기화가
+     브라우저 기본값인 dialog:modal { margin: auto } 를 덮어써서 왼쪽 위에 붙었다.
+     가운데 정렬을 명시적으로 되돌린다. */
+  margin: auto;
+  width: min(300px, calc(100vw - 48px));
+  padding: var(--calc-space-4);
+  border: 1px solid var(--calc-border);
+  border-radius: 16px;
+  background: var(--calc-bg);
+  color: var(--calc-text);
+  font-family: var(--font-sans);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.30);
+}
+
+.calc-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.calc-dialog-title {
+  margin: 0 0 var(--calc-space-2);
+  font-size: var(--calc-fs-title);
+  line-height: var(--calc-lh-title);
+  font-weight: 600;
+}
+
+.calc-dialog-body {
+  margin: 0 0 var(--calc-space-4);
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  color: var(--calc-text-dim);
+}
+
+.calc-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--calc-space-2);
+}
+
+.calc-dialog-btn {
+  min-height: 44px;
+  /* WCAG 2.5.8 이상 */
+  padding: 0 var(--calc-space-4);
+  font-family: inherit;
+  font-size: var(--calc-fs-item);
+  line-height: var(--calc-lh-item);
+  font-weight: 500;
+  color: var(--calc-text);
+  background: transparent;
+  border: 1px solid var(--calc-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.calc-dialog-btn:hover {
+  background-color: rgba(32, 32, 32, 0.08);
+}
+
+/* 확정 버튼만 채운다. 주 액션 하나만 채움(명세 4.1 · 원리 P1). */
+.calc-dialog-btn.is-danger {
+  color: var(--calc-on-accent);
+  background: var(--calc-accent);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.calc-dialog-btn.is-danger:hover {
+  background: color-mix(in srgb, var(--calc-bg) var(--state-hover), var(--calc-accent));
+}
+
+/* ════════════════════════════════════════
+   토큰 슬라이더 영역
+   ════════════════════════════════════════ */
+
+#calc-tokens {
+  padding: var(--calc-space-3) var(--calc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.token-section {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(32, 32, 32, 0.10);
+}
+
+/* div[role=button]이던 것을 실제 button으로 바꿨다. 키보드로 닿지 않아
+   토큰 슬라이더 자체에 접근할 수 없던 문제를 고치기 위해서다(WCAG 2.1.1). */
+.token-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--calc-space-2);
+  width: 100%;
+  min-height: 44px;
+  /* Material 터치 타깃 48dp에 근접 */
+  padding: var(--calc-space-3) var(--calc-space-3);
+  background: var(--calc-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.token-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.token-header:hover {
+  background: rgba(32, 32, 32, 0.10);
+}
+
+.token-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--calc-space-2);
+}
+
+.token-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid rgba(32, 32, 32, 0.10);
+  flex-shrink: 0;
+  transition: background-color var(--transition-slow);
+}
+
+.token-name {
+  font-size: var(--calc-fs-item);
+  line-height: var(--calc-lh-item);
+  font-weight: 500;
+  color: var(--calc-text);
+}
+
+.token-hex {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--calc-text-dim);
+  background: rgba(32, 32, 32, 0.10);
+  padding: 2px var(--calc-space-2);
+  border-radius: 4px;
+}
+
+.token-bw {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  color: var(--calc-text-dim);
+  white-space: nowrap;
+}
+
+.token-chevron {
+  font-size: var(--calc-fs-meta);
+  /* 아이콘 글리프 */
+  color: var(--calc-text-dim);
+  transition: transform var(--transition-fast);
+}
+
+.token-section.open .token-chevron {
+  transform: rotate(90deg);
+}
+
+.token-body {
+  display: none;
+  padding: var(--calc-space-3);
+  background: #ffffff;
+  gap: var(--calc-space-3);
+  flex-direction: column;
+  border-top: 1px solid var(--calc-border);
+}
+
+.token-section.open .token-body {
+  display: flex;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--calc-space-2);
+}
+
+.slider-label {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  font-weight: 500;
+  color: var(--calc-text-dim);
+  width: 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ─── 범용 슬라이더 ─── */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* WCAG 경고 뱃지 */
+.slider-val {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--calc-text-dim);
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════
+   면적 가중치 패널
+   ════════════════════════════════════════ */
+
+#calc-weights {
+  padding: 0 var(--calc-space-4) var(--calc-space-3);
+  border-top: 1px solid var(--calc-border);
+}
+
+/* ════════════════════════════════════════
+   검증 배지 (6.1)
+   ════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   반응형 레이아웃
+   ════════════════════════════════════════ */
+
+@media (max-width: 440px) {
+  #floating-calc {
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+}
+
+/* BW is the primary result; contrast is a single secondary line. */
+
+#bw-meter {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: 4px;
+  background: #e8e8e8;
+}
+
+#bw-meter[hidden] {
+  display: none;
+}
+
+#bw-meter::-webkit-meter-bar {
+  background: #e8e8e8;
+  border: 0;
+  border-radius: 4px;
+}
+
+#bw-meter::-webkit-meter-optimum-value {
+  background: #444;
+  border-radius: 4px;
+}
+
+#bw-meter::-moz-meter-bar {
+  background: #444;
+}
+
+/* 현재 대비 — 대비 수준 선택지 바로 위에서 기준값 노릇을 한다. */
+
+#stat-contrast {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  font-weight: 500;
+  color: var(--calc-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  gap: var(--calc-space-2);
+}
+
+.eyedropper-btn {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  font-weight: 500;
+  padding: var(--calc-space-2);
+  border: 1px solid var(--calc-border);
+  border-radius: 6px;
+  background: var(--calc-surface);
+  color: var(--calc-text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.picker-message {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  color: var(--calc-text-dim);
+}
+
+.picker-message:empty {
+  display: none;
+}
+
+.token-body .slider-label {
+  min-width: 28px;
+  white-space: nowrap;
+}
+
+.palette-row {
+  flex-wrap: wrap;
+}
+
+.token-color-code {
+  flex: 1;
+  color: var(--calc-text);
+  font-family: monospace;
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+}
+
+.hue-slider {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 16px;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  margin: var(--calc-space-2) 0;
+}
+
+/* Always visible while the controls scroll. */
+.token-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--calc-space-3) 12px;
+}
+
+/* 이름 위 · 값 아래로 쌓아 세 칸이 폭 안에 들어오게 한다(한 줄이면 Text 값이 잘렸다). */
+.token-result {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--calc-text);
+}
+
+.token-result span {
+  font-size: var(--calc-fs-body);
+  line-height: var(--calc-lh-body);
+  color: var(--calc-text-dim);
+}
+
+.token-result output {
+  font-size: var(--calc-fs-data);
+  line-height: var(--calc-lh-data);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 대비 수준 · HCT 표시 · 토큰 내보내기 (2026-09-19 추가) ───────────────
+   기준서 MD3-04(대비 3단계), MD3-03(HCT 표시 전용), TKN-08(DTCG 내보내기) */
+#calc-contrast-level {
+  padding: var(--calc-space-3) var(--calc-space-4);
+  border-bottom: 1px solid var(--calc-border);
+}
+
+#calc-contrast-level .calc-section-label {
+  display: block;
+  margin-bottom: var(--calc-space-2);
+}
+
+.hct-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--calc-space-2);
+}
+
+.hct-readout .token-hct {
+  font-variant-numeric: tabular-nums;
+  color: var(--calc-text);
+}
+
+.hct-readout .hct-note {
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  color: var(--calc-text-dim);
+}
+
+#calc-export {
+  padding: var(--calc-space-3) var(--calc-space-4) var(--calc-space-4);
+}
+
+.calc-export-btn {
+  font-size: var(--calc-fs-item);
+  line-height: var(--calc-lh-item);
+  font-weight: 500;
+  width: 100%;
+  min-height: 48px;
+  /* Material 터치 타깃 48dp */
+  font-family: inherit;
+  color: var(--calc-on-accent);
+  background: var(--calc-accent);
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.calc-export-btn:hover {
+  background: color-mix(in srgb, var(--calc-bg) var(--state-hover), var(--calc-accent));
+}
+
+.calc-export-btn:active {
+  background: color-mix(in srgb, var(--calc-bg) var(--state-press), var(--calc-accent));
+}
+
+#stat-headroom {
+  margin-top: 4px;
+}
+
+/* ── 슬라이더 포인터 타깃 확대 (WCAG 2.5.8 · 기준서 ACC-07) ───────────────
+   헤드리스 렌더 점검에서 슬라이더 타깃이 4~16px로 잡혀 24×24 CSS px 기준에
+   미달했다. 보이는 트랙 두께와 손잡이 크기는 유지한 채 입력 요소와 손잡이의
+   타깃만 24px로 키운다. */
+#floating-calc .range-slider {
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+  /* 보이는 트랙은 그대로 4px */
+  background-position: center;
+  border-radius: 0;
+}
+
+#floating-calc .hue-slider {
+  height: 24px;
+  background-size: 100% 100%;
+  /* 색상 띠는 전체를 채운다 */
+  border-radius: 4px;
+}
+
+#floating-calc .range-slider::-webkit-slider-thumb,
+#floating-calc .range-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  /* 실제로 보이는 손잡이는 지름 14px, 타깃은 24px */
+  background-image: radial-gradient(circle, #fff 0 7px, rgba(0, 0, 0, 0) 7.5px);
+  box-shadow: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+#floating-calc .range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+  box-shadow: none;
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.5));
+}
+
+/* ── 토큰별 게이트 수치 · 대비 수준 변경 안내 (2026-09-19) ────────────────
+   대비 수준을 바꿔도 이미 기준을 넘는 색은 그대로다. 그때 화면이 멈춘 것처럼
+   보이지 않도록, 기준·현재·허용 범위를 숫자로 드러내고 결과를 문장으로 알린다. */
+.token-gate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--calc-space-1) var(--calc-space-3);
+}
+
+.token-gate .gate-item {
+  white-space: nowrap;
+}
+
+.token-gate output {
+  font-variant-numeric: tabular-nums;
+  color: var(--calc-text);
+}
+
+/* ── 대비 수준 3단 비교 (2026-09-19) ──────────────────────────────────────
+   하나씩 전환하면 이미 기준을 넘는 팔레트에서는 아무 변화가 없어 고장처럼 보인다.
+   세 단계를 나란히 투영해 두고 그중에서 고르게 한다. 네이티브 라디오를 쓰므로
+   키보드 조작과 그룹 의미가 그대로 살아 있다(기준서 MKP-06). */
+.level-compare {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.level-compare legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.level-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--calc-space-1);
+}
+
+.level-option {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--calc-space-1);
+  padding: var(--calc-space-3) var(--calc-space-2);
+  border: 1px solid var(--calc-border);
+  border-radius: var(--radius-md);
+  background: var(--calc-bg);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.level-option:hover {
+  background: color-mix(in srgb, var(--calc-text) var(--state-hover), var(--calc-bg));
+}
+
+/* 라디오를 칼럼 전체에 깔아 투명하게 둔다. 보이지는 않지만 포인터 타깃이
+   칼럼 크기 그대로여서 WCAG 2.5.8을 입력 요소 자체로 충족한다. */
+.level-option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.level-option:has(input:checked) {
+  border-color: var(--calc-text);
+  background: var(--calc-surface);
+}
+
+.level-option:has(input:focus-visible) {
+  outline: 2px solid var(--calc-text);
+  outline-offset: 2px;
+}
+
+.level-name {
+  font-size: var(--calc-fs-item);
+  line-height: var(--calc-lh-item);
+  font-weight: 500;
+  color: var(--calc-text);
+}
+
+.level-option:has(input:checked) .level-name::after {
+  content: ' ●';
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  vertical-align: middle;
+}
+
+.level-target {
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  color: var(--calc-text-dim);
+}
+
+.level-swatches {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+
+.level-swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--calc-border);
+  border-radius: 3px;
+}
+
+.level-delta {
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  color: var(--calc-text-dim);
+  overflow-wrap: anywhere;
+}
+
+/* 기기 고대비 선호 때문에 선택과 실제 적용이 갈리는 경우를 표시한다. */
+.level-option.is-effective:not(:has(input:checked))::before {
+  content: '적용 중';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 var(--calc-space-1);
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  color: var(--calc-on-accent);
+  background: var(--calc-accent);
+  border-radius: 999px;
+}
+
+.level-warn:empty {
+  display: none;
+}
+
+.level-warn {
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  color: var(--calc-text);
+  overflow-wrap: anywhere;
+}
+
+/* ── 글래스 미지원·강제 색상 모드 대비 ─────────────────────────────────────
+   backdrop-filter가 없으면 반투명만 남아 뒤 내용이 그대로 비쳐 읽기 어렵다.
+   그때는 불투명 흰색으로 되돌린다. 강제 색상 모드에서도 마찬가지다. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --calc-bg: #ffffff;
+    --calc-surface: #f7f7f7;
+  }
+
+  #floating-calc {
+    background-image: none;
+  }
+
+  #floating-calc {
+    border-color: var(--calc-border);
+  }
+}
+
+@media (forced-colors: active) {
+  #floating-calc {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-image: none;
+    background-color: Canvas;
+    border: 1px solid CanvasText;
+  }
+}
+
+/* ════════════════════════════════════════
+   인쇄 — 화면 전용 장치는 종이에 남기지 않는다.
+   떠 있는 계산기와 스티키 바가 본문 위에 겹쳐 찍히던 문제를 막는다.
+   ════════════════════════════════════════ */
+@media print {
+
+  #floating-calc, .calc-dialog {
+    display: none !important;
+  }
+
+  #library-preview {
+    height: auto !important;
+    overflow: visible !important;
+    margin-right: 0 !important;
+  }
+
+  .pl-panel {
+    display: block !important;
+  }
+
+  .pl-section {
+    break-inside: avoid;
+  }
+}
+
+/* ─── M3 중립 팔레트 안내 ─── */
+#calc-neutral-link {
+  padding: var(--calc-space-3) var(--calc-space-4);
+  border-bottom: 1px solid var(--calc-border);
+}
+
+#neutral-link-note {
+  margin-top: var(--calc-space-2);
+}
+
+/* WCAG 등급(AA · AAA)은 선택 상태와 별개로 항상 보이는 근거 표시다. */
+.level-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.level-wcag {
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--calc-text);
+  color: var(--calc-on-accent);
+  font-size: var(--calc-fs-meta);
+  line-height: var(--calc-lh-meta);
+  font-weight: 500;
+}
+/* ════════════════════════════════════════
+   도움말 · 슬라이더 기준/현재 표시 (2026-09-28)
+   설명 문장은 없애고, 필요한 설명은 작은 ? 아이콘의 툴팁(#pl-tip, patterns.js)으로 보인다.
+   ════════════════════════════════════════ */
+.calc-help {
+  display: inline-grid; place-items: center; vertical-align: middle;
+  width: 20px; height: 20px; margin: 0 0 0 2px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent;
+  color: var(--calc-text-dim); cursor: help; position: relative;
+}
+/* 대상 크기 24 이상(WCAG 2.5.8) — 보이는 아이콘은 작게 두고 누르는 영역만 넓힌다 */
+.calc-help::before { content: ''; position: absolute; inset: -4px; }
+.calc-help:hover { color: var(--calc-text); background: color-mix(in srgb, var(--calc-text) var(--state-hover), transparent); }
+.calc-help-icon { width: 16px; height: 16px; fill: currentColor; }
+.calc-help-src[hidden] { display: none !important; }
+.calc-head-row { display: flex; align-items: center; gap: var(--calc-space-1); }
+#calc-stats .calc-head-row { margin-bottom: var(--calc-space-2); }
+#calc-export .calc-head-row .calc-export-btn { flex: 1 1 auto; }
+
+.token-body .slider-label { display: inline-flex; align-items: center; min-width: 48px; }
+
+/* 명도 슬라이더 아래 — 「기준」은 허용 범위 끝, 「현재」는 손잡이 위치 */
+.slider-marks {
+  position: relative; height: 16px;
+  margin: 2px calc(28px + var(--calc-space-2)) var(--calc-space-2) calc(48px + var(--calc-space-2));
+  font-size: var(--calc-fs-meta); line-height: 16px; white-space: nowrap;
+}
+.slider-marks[data-current-near="true"] { height: 32px; }
+.mark-current {
+  position: absolute; top: 0; left: clamp(0%, var(--mark-pos, 0%), 100%); transform: translateX(-50%);
+  color: var(--calc-text); font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.slider-marks[data-current-near="true"] .mark-current { top: 16px; }
+.mark-target { position: absolute; top: 0; color: var(--calc-text-dim); font-variant-numeric: tabular-nums; }
+.mark-target[data-edge="start"] { left: 0; padding-left: 5px; border-left: 2px solid currentColor; }
+.mark-target[data-edge="end"] { right: 0; padding-right: 5px; border-right: 2px solid currentColor; }
+.mark-target[hidden] { display: none; }
+
+/* 공통 툴팁 — M3 Plain tooltip(inverse-surface · body-small · 모서리 xs), 화면 기준 위치 */
+.pl-tip {
+  position: fixed; z-index: 10000; max-width: 260px;
+  padding: var(--md-space-50, 4px) var(--md-space-100, 8px);
+  border-radius: var(--md-shape-xs, 4px);
+  background: var(--inverse-surface, #313033); color: var(--on-inverse-surface, #f4eff4);
+  font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking);
+  pointer-events: auto;
+}
+.pl-tip[hidden] { display: none; }
+.pl-tip * { color: inherit !important; font: inherit !important; letter-spacing: inherit !important; background: none !important; }
+.pl-tip :is(span, output) { display: block; }
+.pl-tip .hct-note { display: inline; opacity: .8; }
+.pl-tip .hct-note::before { content: ' · '; }
+.pl-tip .calc-help-line + .calc-help-line { margin-top: 4px; }
+.pl-tip .token-gate .gate-item { display: inline; margin-right: 6px; }
+.pl-tip .token-gate .gate-item output, .pl-tip .hct-readout output { display: inline; }
+
+/* ── 대비 수준 슬라이더 · 초기화 버튼 (2026-09-28) ─────────────────────────────
+   세 수준 카드 대신 기본 · 중간 · 높음 3칸 슬라이더. 카드의 목표 글자 · 견본 · BW 변화는 보이지 않는다.
+   목표를 못 채우는 수준의 눈금에만 빨간 점(--error)을 달고, 설명은 마우스 올림 툴팁 · 슬라이더 aria-valuetext로. */
+.level-compare .level-options { display: none; }
+.level-slider { padding: 0 var(--calc-space-1); }
+.level-slider input[type="range"] { display: block; width: 100%; height: 24px; margin: 0; accent-color: var(--calc-text); cursor: pointer; }
+.level-slider input[type="range"]:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); border-radius: var(--md-shape-xs); }
+.level-ticks { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 2px; }
+.level-tick { position: relative; justify-self: center; color: var(--calc-text-dim); font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); }
+.level-tick:first-child { justify-self: start; }
+.level-tick:last-child { justify-self: end; }
+.level-tick.is-current { color: var(--calc-text); font: var(--md-type-emphasized-label-medium); }
+.level-tick[data-warn]::after { content: ''; position: absolute; top: 0; right: -8px; width: 6px; height: 6px; border-radius: 50%; background: var(--error); }
+
+/* 초기화 — 내보내기(채운 버튼) 밑의 보조 동작. 전체 폭 외곽선 버튼, 선 · 글자 모두 계산기 글자색. */
+.calc-reset-btn { display: flex; align-items: center; justify-content: center; gap: var(--md-space-100); width: 100%; min-height: 40px; margin-top: var(--calc-space-2); padding: 0 var(--md-space-300); border: 1px solid var(--calc-text); border-radius: var(--md-shape-full); background: transparent; color: var(--calc-text); font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); cursor: pointer; }
+.calc-reset-btn .calc-icon { width: 18px; height: 18px; }
+.calc-reset-btn:hover { background: color-mix(in srgb, var(--calc-text) var(--md-state-hover), transparent); }
+.calc-reset-btn:active { background: color-mix(in srgb, var(--calc-text) var(--md-state-pressed), transparent); }
+.calc-reset-btn:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+/* 내보내기 버튼(오른쪽에 ? 도움말 24px)과 좌우 끝을 맞춘다 */
+#calc-export .calc-reset-btn { width: calc(100% - 24px); }

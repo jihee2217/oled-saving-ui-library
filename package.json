@@ -1,0 +1,11 @@
+{
+  "name": "bw-index-calculator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.js",
+    "start": "node scripts/serve.js",
+    "build": "node scripts/build.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

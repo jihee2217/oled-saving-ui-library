@@ -1,0 +1,124 @@
+/* Shared role-based styling for the existing library and calculator. */
+/* 상태 레이어·반경 토큰은 tokens.css가 단일 출처다(기준서 MD3-07, MD3-09). */
+:root {
+  --on-primary: #000;
+  /* 옛 별칭 — M3 타입 스케일 토큰을 가리킨다(2026-10-18 적합성 검토). 굵기 · 크기 · 줄 높이는 tokens.css가 정본 */
+  --type-headline: var(--md-type-headline-medium);
+  --type-title: var(--md-type-emphasized-title-large);
+  --type-body: var(--md-type-body-large);
+  --type-label: var(--md-type-label-large);
+}
+
+html[data-style] .preview-root .btn-icon { width: 48px; height: 48px; transform: none; }
+html[data-style] .preview-root .input-field { font: var(--type-body); min-height: 48px; background: var(--surface); border: 1px solid var(--text); border-radius: var(--radius-sm); box-shadow: none; }
+html[data-style] .preview-root .input-field::placeholder { opacity: .7; }
+/* State overlays preserve the foreground/background pairing. */
+html[data-style] .preview-root .btn-icon:hover:not(:disabled) { background: color-mix(in srgb, var(--text) var(--state-hover), var(--bg)); }
+html[data-style] .preview-root .btn-icon:active:not(:disabled) { background: color-mix(in srgb, var(--text) var(--state-press), var(--bg)); }
+/* M3 키보드 포커스 표시: 3px secondary, 간격 2(명세 3.7). 스크롤 영역(tabindex=0)도 같은 링. */
+.library-page :is(button,input,select,a,[tabindex="0"]):focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+/* 넘쳐서 키보드로 스크롤되는 견본 줄(브라우저가 tabindex 없이 포커스를 준다)도 같은 링 */
+.library-page .btn-spec-row:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+#floating-calc :is(button,input,select,a):focus-visible { outline-color: var(--calc-text); }
+.toggle-track:has(input:focus-visible) { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }   /* 스위치는 투명한 입력 대신 트랙에 링(M3 md-focus-ring) */
+html[data-style] .preview-root :is(button:not(.btn),input,select):disabled { opacity: .38; cursor: not-allowed; transform: none; box-shadow: none; }
+/* 계산기 크롬의 글자 크기·행간은 calculator.css의 --calc-fs-*/--calc-lh-* 스케일이 정본이다.
+   라이브러리용 --type-* 토큰을 여기에 덮어쓰지 않는다. */
+#floating-calc button { font-family: var(--font-sans); }
+@media(max-width:600px) { .pl-tab { flex-shrink:0; } }
+@media(prefers-reduced-motion:reduce) { .library-page *, .library-page *::before, .library-page *::after { transition:none !important; animation:none !important; } }
+
+/* Interactive pattern samples share the library palette. */
+
+.sample-range { width: 100%; min-height: 44px; accent-color: var(--accent); }
+#sample-range-value { float: right; font-variant-numeric: tabular-nums; }
+#sample-progress { width: 100%; height: 8px; border: 0; border-radius: 4px; overflow: hidden; background: var(--surface); accent-color: var(--accent); }
+#sample-progress::-webkit-progress-bar { background: color-mix(in srgb,var(--text) 12%,var(--bg)); }
+#sample-progress::-webkit-progress-value { background: var(--accent); }
+#sample-progress::-moz-progress-bar { background: var(--accent); }
+
+@keyframes sample-spin { to { transform:rotate(360deg); } }
+
+/* 스낵바는 M3가 inverse-surface/on-inverse-surface를 쓰도록 정한 컴포넌트다.
+   파생 팔레트를 그대로 따른다. */
+
+/* Material-inspired shapes, surfaces and component proportions.
+   Keep role colors editable; this is a tailored web theme, not the M3 SDK. */
+:root {
+  --shape-small: var(--md-shape-sm);
+  --shape-medium: var(--md-shape-md);
+  --shape-large: var(--md-shape-lg);
+  --shape-dialog: var(--md-shape-xl);
+  --surface-container: var(--surface);
+  --outline: var(--border-strong); /* tokens.css의 outline 역할을 그대로 사용 */
+}
+html[data-style] .preview-root .btn-icon { border-radius:999px; }
+html[data-style] .preview-root .input-field { min-height:56px; border-radius:4px; border-color:var(--outline); padding:16px; }
+html[data-style] .preview-root .input-field:focus { border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--accent); }
+
+html[data-style] .preview-root .toggle-track { width:52px; height:32px; background:var(--surface); border:2px solid var(--outline); }
+html[data-style] .preview-root .toggle-thumb { width:16px; height:16px; top:6px; left:6px; background:var(--text); }
+html[data-style] .preview-root .toggle-track:has(input:checked) { background:var(--accent); border-color:var(--accent); }
+html[data-style] .preview-root .toggle-track:has(input:checked) .toggle-thumb { width:24px; height:24px; top:2px; left:2px; transform:translateX(20px); background:var(--on-primary); }
+html[data-style] .preview-root .card { border:1px solid var(--library-border); border-radius:var(--shape-medium); background:var(--surface-container); box-shadow:none; transform:none; }
+html[data-style] .preview-root .card:hover { box-shadow:0 2px 6px #0002; transform:none; }
+
+#floating-calc { border-radius:28px; } /* 그림자는 calculator.css의 글래스 정의를 쓴다 */
+
+/* 텍스트 버튼(.btn)의 크기·색·상태는 molecules.css 1장이 정본이다(2026-09-24 통합). */
+html[data-style] .preview-root .input-field { caret-color:var(--accent); }
+
+/* Complete library theme: common shapes and states in both palettes. */
+:root { --tonal: var(--secondary-container); }
+html[data-style] .preview-root svg.icon { fill:none; stroke:currentColor; stroke-width:1.5; }
+html[data-style] .preview-root [aria-pressed="true"] svg.icon { fill:currentColor; }
+html[data-style] .preview-root .btn-icon[aria-pressed="true"] { background:var(--tonal); }
+html[data-style] .preview-root .card { border:0; box-shadow:none; background:var(--surface); }
+html[data-style] .preview-root .card[data-variant="filled"] { background:var(--tonal); }
+html[data-style] .preview-root .card[data-variant="outlined"] { background:var(--surface); border:1px solid var(--outline); }
+html[data-style] .preview-root .card[data-variant="elevated"] { box-shadow:0 1px 3px #0004,0 2px 6px #0002; }
+html[data-style] .preview-root .card:hover { transform:none; }
+
+#card-variant { max-width:100%; width:100%; }
+
+html[data-style] .preview-root .field-container:has(.icon-leading) .input-field { padding-left:52px; }
+html[data-style] .preview-root .input-field[aria-invalid="true"] { border-color:var(--error); box-shadow:inset 0 0 0 1px var(--error); }
+html[data-style] .preview-root .input-field[aria-invalid="true"]:focus { box-shadow:inset 0 0 0 2px var(--error); }
+
+.sample-range { appearance:none; background:transparent; --range-percent:40%; height:48px; cursor:pointer; }
+.sample-range::-webkit-slider-runnable-track { height:4px; border-radius:2px; background:linear-gradient(to right,var(--accent) var(--range-percent),var(--tonal) var(--range-percent)); }
+.sample-range::-webkit-slider-thumb { appearance:none; width:20px; height:20px; margin-top:-8px; border:0; border-radius:50%; background:var(--accent); box-shadow:0 1px 3px #0003; }
+.sample-range::-moz-range-track { height:4px; border-radius:2px; background:var(--tonal); }
+.sample-range::-moz-range-progress { height:4px; background:var(--accent); }
+.sample-range::-moz-range-thumb { width:20px; height:20px; border:0; border-radius:50%; background:var(--accent); }
+.sample-range:disabled { --accent:var(--text); }
+#sample-progress { height:4px; }
+
+@media(max-width:600px) {
+  .library-page .pl-item-preview { max-width:100%; }
+
+}
+@media(forced-colors:active) {
+  .sample-range { appearance:auto; }
+
+  .sample-range::-webkit-slider-thumb { background:Highlight; }
+}
+
+/* Prevent preview wrappers from stretching bars beyond component height. */
+
+/* 상태 레이어 보완 — 기준서 MD3-09 / CON-3.
+   포커스는 아웃라인 표시가 1차 수단이고(ACC-08), 바탕이 투명한 컨트롤에만
+   focus 상태 레이어를 얹는다. drag는 계산기 패널 이동에 적용한다. */
+html[data-style] .preview-root :is(.btn-icon):focus-visible {
+  background: color-mix(in srgb, var(--text) var(--state-focus), transparent);
+}
+#floating-calc.is-dragging #calc-header {
+  background: color-mix(in srgb, var(--calc-text) var(--state-drag), var(--calc-surface));
+}
+
+/* 보조 정보도 대비 게이트를 통과한 원색을 쓴다. 위계는 크기·간격으로 표현한다. */
+
+html[data-style] .preview-root .input-field::placeholder { color:var(--text); opacity:1; }
+html[data-style] .preview-root .btn-icon[aria-pressed="true"] { color:var(--on-secondary-container); }
+
+

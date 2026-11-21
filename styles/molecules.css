@@ -1,0 +1,2392 @@
+/**
+ * molecules.css
+ * M3 기반 에너지 절감형 단일 컴포넌트(Molecules) 스타일
+ * 준수 규격: 절감형-디자인시스템-명세.md 4장, PRD 10장 / 11장
+ */
+
+/* ════════════════════════════════════════
+   1. Buttons — M3 Expressive 기준 구현 (명세 4.1.1)
+   ────────────────────────────────────────
+   축 네 개를 독립적으로 조합한다.
+     색      .btn-elevated | .btn-filled | .btn-tonal | .btn-outlined | .btn-text
+             (.btn-primary = filled, .btn-secondary = outlined 별칭, 기존 마크업 호환)
+     크기    data-size="xs | s(기본) | m | l | xl"
+     형태    data-shape="round(기본) | square"
+     토글    aria-pressed="false | true"  (text는 토글 없음 — M3 규칙)
+   상태     :hover / :focus-visible / :active / :disabled
+            갤러리 견본은 data-state="hover|focus|pressed"로 같은 모습을 고정 표시한다.
+   수치 출처: m3.material.io/components/buttons/specs (2026-09-24 확인)
+     크기별 높이·좌우 패딩·아이콘·간격·코너(square / pressed)·외곽선 두께
+   색은 M3 색 역할 그대로다(계산기가 4토큰에서 파생). 절감 변형은 아직 넣지 않았다.
+   ════════════════════════════════════════ */
+
+.btn {
+  /* 크기 — 기본 Small */
+  --btn-h: 40px;
+  --btn-pad: 16px;
+  --btn-icon: 20px;
+  --btn-gap: 8px;
+  --btn-radius-square: var(--md-shape-md);
+  --btn-radius-pressed: var(--md-shape-sm);
+  --btn-outline-w: 1px;
+  --btn-fs: 0.875rem;       /* label-large 14/20 */
+  --btn-lh: 1.25rem;
+  --btn-weight: 500;
+  --btn-tracking: var(--md-type-label-large-tracking);    /* label-large tracking */
+
+  /* 색 — 기본은 Text와 같은 투명 컨테이너 */
+  --btn-container: transparent;
+  --btn-label: var(--text);
+  --btn-outline: transparent;
+  --btn-shadow: none;
+  --btn-shadow-hover: var(--btn-shadow);
+
+  /* M3 elevation level 1·2 */
+  --btn-elevation-1: var(--md-elevation-1);
+  --btn-elevation-2: var(--md-elevation-2);
+
+  /* 형태 */
+  --btn-radius: calc(var(--btn-h) / 2);   /* 둥근 끝(full)은 높이의 절반 — 9999px에서 작은 모서리로 바뀌면 보간이 끝에서 한 번에 튀어 뻣뻣해 보인다 */
+
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--btn-gap);
+  box-sizing: border-box;
+  min-height: var(--btn-h);
+  min-width: 48px;
+  padding: 4px var(--btn-pad);
+  border: var(--btn-outline-w) solid var(--btn-outline);
+  border-radius: var(--btn-radius);
+  background-color: var(--btn-container);
+  color: var(--btn-label);
+  box-shadow: var(--btn-shadow);
+  font-family: var(--font-sans);
+  font-size: var(--btn-fs);
+  line-height: var(--btn-lh);
+  font-weight: var(--btn-weight);
+  letter-spacing: var(--btn-tracking);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* M3 Expressive — 모양은 FastSpatial 스프링(살짝 튕김), 색 · 그림자는 FastEffects 스프링 */
+  transition:
+    border-radius var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial),
+    background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects),
+    border-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects),
+    color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects),
+    box-shadow var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+
+/* 상태 레이어 — 라벨 색(currentColor)을 M3 불투명도로 얹는다(명세 3.7). */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--btn-outline-w) * -1);
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+
+/* 포인터 타깃 — XS·S는 시각 높이가 48px보다 작으므로 위아래로 넓힌다(M3 target area, WCAG 2.5.8). */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((var(--btn-h) - 48px) / 2)) 0;
+}
+
+/* 아이콘은 Material Symbols 글리프(채움 도형)를 쓴다. 라이브러리 공통 선 아이콘 규칙보다 우선한다. */
+html[data-style] .preview-root .btn svg.icon-symbol,
+.btn svg.icon-symbol { fill: currentColor; stroke: none; }
+.btn svg.icon,
+.btn .btn-icon-glyph {
+  width: var(--btn-icon);
+  height: var(--btn-icon);
+  flex: none;
+}
+
+/* ─── 상태 ─── */
+.btn:hover:not(:disabled),
+.btn[data-state="hover"] { box-shadow: var(--btn-shadow-hover); }
+.btn:hover:not(:disabled)::after,
+.btn[data-state="hover"]::after { opacity: var(--state-hover); }
+
+.btn:focus-visible::after,
+.btn[data-state="focus"]::after { opacity: var(--state-focus); }
+/* M3 포커스 링: 3px secondary, 2px 간격 */
+.library-page .btn:focus-visible,
+.btn[data-state="focus"] { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+
+.btn:active:not(:disabled),
+.btn[data-state="pressed"] { --btn-radius: var(--btn-radius-pressed); box-shadow: var(--btn-shadow); }
+.btn:active:not(:disabled)::after,
+.btn[data-state="pressed"]::after { opacity: var(--state-press); }
+
+/* ─── 크기 (M3 Expressive) ─── */
+.btn[data-size="xs"] { --btn-h: 32px;  --btn-pad: 12px; --btn-icon: 20px; --btn-gap: 4px;  --btn-radius-square: var(--md-shape-md); --btn-radius-pressed: var(--md-shape-sm); }
+.btn[data-size="m"]  { --btn-h: 56px;  --btn-pad: 24px; --btn-icon: 24px; --btn-gap: 8px;  --btn-radius-square: var(--md-shape-lg); --btn-radius-pressed: var(--md-shape-md);
+                       --btn-fs: 1rem;    --btn-lh: 1.5rem; --btn-tracking: var(--md-type-title-medium-tracking); }                       /* title-medium 16/24 */
+.btn[data-size="l"]  { --btn-h: 96px;  --btn-pad: 48px; --btn-icon: 32px; --btn-gap: 12px; --btn-radius-square: var(--md-shape-xl); --btn-radius-pressed: var(--md-shape-lg);
+                       --btn-fs: 1.5rem;  --btn-lh: 2rem;   --btn-weight: 400; --btn-tracking: var(--md-type-headline-small-tracking); --btn-outline-w: 2px; } /* headline-small 24/32 */
+.btn[data-size="xl"] { --btn-h: 136px; --btn-pad: 64px; --btn-icon: 40px; --btn-gap: 16px; --btn-radius-square: var(--md-shape-xl); --btn-radius-pressed: var(--md-shape-lg);
+                       --btn-fs: 2rem;    --btn-lh: 2.5rem; --btn-weight: 400; --btn-tracking: var(--md-type-headline-large-tracking); --btn-outline-w: 3px; } /* headline-large 32/40 */
+
+/* ─── 형태 ─── */
+.btn[data-shape="square"] { --btn-radius: var(--btn-radius-square); }
+
+/* ─── 색 (M3 color roles — m3.material.io/components/buttons/specs#Color) ─── */
+.btn-elevated {
+  --btn-container: var(--surface-container-low, var(--surface));
+  --btn-label: var(--primary-on-bg, var(--primary));   /* 글자로 쓰는 Primary — 대비 보정 역할(명세 4.1.4) */
+  --btn-shadow: var(--btn-elevation-1);
+  --btn-shadow-hover: var(--btn-elevation-2);
+}
+.btn-filled,
+.btn-primary {
+  --btn-container: var(--primary);
+  --btn-label: var(--on-primary);
+  --btn-shadow-hover: var(--btn-elevation-1);
+}
+.btn-tonal {
+  --btn-container: var(--secondary-container);
+  --btn-label: var(--on-secondary-container);
+  --btn-shadow-hover: var(--btn-elevation-1);
+}
+.btn-outlined,
+.btn-secondary {
+  --btn-outline: var(--outline-variant);
+  --btn-label: var(--on-surface-variant);
+}
+.btn-text {
+  --btn-label: var(--primary-on-bg, var(--primary));   /* 글자로 쓰는 Primary — 대비 보정 역할(명세 4.1.4) */
+}
+
+/* 토글 아이콘: 비선택은 outlined 글리프, 선택은 filled 글리프(MDC CommonButton · Toggle button 규칙) */
+.btn .icon-selected { display: none; }
+.btn:is([aria-pressed="true"],[aria-checked="true"]) .icon-selected { display: inline-block; }
+.btn:is([aria-pressed="true"],[aria-checked="true"]) .icon-unselected { display: none; }
+
+/* ─── 토글 (M3 Expressive) — 선택되면 round↔square로 형태가 바뀐다. Text는 토글 없음 ─── */
+.btn[aria-pressed="true"] { --btn-radius: var(--btn-radius-square); }
+.btn[data-shape="square"][aria-pressed="true"] { --btn-radius: calc(var(--btn-h) / 2); }
+/* 누름이 선택 형태보다 우선한다(MDC m3expressive_button_shape_state_list). */
+.btn:is([aria-pressed="true"],[aria-checked="true"]):is(:active:not(:disabled),[data-state="pressed"]) { --btn-radius: var(--btn-radius-pressed); }
+
+.btn-elevated[aria-pressed="true"] { --btn-container: var(--primary); --btn-label: var(--on-primary); }
+.btn-filled[aria-pressed="false"]  { --btn-container: var(--surface-container, var(--surface)); --btn-label: var(--on-surface-variant); }
+.btn-filled[aria-pressed="true"]   { --btn-container: var(--primary); --btn-label: var(--on-primary); }
+.btn-tonal[aria-pressed="true"]    { --btn-container: var(--secondary); --btn-label: var(--on-secondary); }
+.btn-outlined[aria-pressed="true"] { --btn-container: var(--inverse-surface); --btn-label: var(--on-inverse-surface); --btn-outline: transparent; }
+
+/* 절감 프로파일 변형(명세 4.1.1)은 아직 적용하지 않는다 — 현재는 두 모드 모두 M3 기본값. */
+
+/* Disabled — M3 토큰: 컨테이너 on-surface 10%, 라벨·아이콘 on-surface-variant 38%(Tonal은 on-surface 38%),
+   Outlined 외곽선 outline-variant 10%, 그림자 없음. 불투명도로 흐리지 않는다.
+   :root를 붙여 색·프로파일·토글 규칙보다 항상 뒤에서 이기게 한다. */
+:root .btn:is(:disabled,[aria-disabled="true"]) {
+  --btn-container: color-mix(in srgb, var(--text) 10%, transparent);
+  --btn-label: color-mix(in srgb, var(--on-surface-variant) 38%, transparent);
+  --btn-outline: transparent;
+  --btn-shadow: none;
+  --btn-shadow-hover: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+:root .btn:is(.btn-outlined,.btn-secondary):is(:disabled,[aria-disabled="true"]) {
+  --btn-container: transparent;
+  --btn-outline: color-mix(in srgb, var(--outline-variant) 10%, transparent);
+}
+:root .btn-text:is(:disabled,[aria-disabled="true"]) { --btn-container: transparent; }
+:root .btn-tonal:is(:disabled,[aria-disabled="true"]) { --btn-label: var(--text-disabled); }
+
+/* 모션 축소 · 강제 색상 */
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn::after { transition: none; }
+}
+@media (forced-colors: active) {
+  .btn { border-color: ButtonText; }
+  .btn:disabled { color: GrayText; border-color: GrayText; }
+  .btn[aria-pressed="true"] { background: Highlight; color: HighlightText; }
+}
+
+/* ════════════════════════════════════════
+   1-1. Icon buttons — M3 Expressive (m3.material.io/components/icon-buttons/specs, 2026-09-28 확인, 명세 4.1.9)
+   ────────────────────────────────────────
+   .btn 위에 아이콘만 있는 형태를 얹는다: data-icon-only. 색 · 크기 · 형태 · 토글 · 상태 규칙은 .btn과 같다.
+     색     .btn-filled(기본) | .btn-tonal | .btn-outlined | .btn-standard
+     폭     data-width="narrow | (기본) | wide"
+   크기별 아이콘 XS 20 · S 24 · M 24 · L 32 · XL 40, 좌우 여백(Compose *IconButtonTokens 14_1_0):
+     narrow 4 · 4 · 12 · 16 · 32 / default 6 · 8 · 16 · 32 · 48 / wide 10 · 14 · 24 · 48 · 72
+   → 폭 28·32·40 / 32·40·52 / 48·56·72 / 64·96·128 / 104·136·184.
+   ════════════════════════════════════════ */
+.btn[data-icon-only] {
+  --ib-space: 8px;
+  --btn-icon: 24px;
+  --ib-w: calc(var(--btn-icon) + var(--ib-space) * 2);
+  width: var(--ib-w);
+  min-width: 0;
+  height: var(--btn-h);
+  padding: 0;
+  gap: 0;
+  /* 아이콘 버튼은 높이(그림자)가 없다 — 글자 버튼의 hover Level 1을 받지 않는다. */
+  --btn-shadow: none;
+  --btn-shadow-hover: none;
+}
+/* 터치 타깃 48 — 시각 크기가 작으면 위아래 · 좌우로 넓힌다(M3 Accessibility: XS · S는 48×48 이상). */
+.btn[data-icon-only]::before { inset: min(0px, calc((var(--btn-h) - 48px) / 2)) min(0px, calc((var(--ib-w) - 48px) / 2)); }
+.btn[data-icon-only][data-size="xs"] { --btn-icon: 20px; --ib-space: 6px; }
+.btn[data-icon-only][data-size="m"]  { --btn-icon: 24px; --ib-space: 16px; }
+.btn[data-icon-only][data-size="l"]  { --btn-icon: 32px; --ib-space: 32px; }
+.btn[data-icon-only][data-size="xl"] { --btn-icon: 40px; --ib-space: 48px; }
+.btn[data-icon-only][data-width="narrow"]                  { --ib-space: 4px; }
+.btn[data-icon-only][data-width="narrow"][data-size="m"]  { --ib-space: 12px; }
+.btn[data-icon-only][data-width="narrow"][data-size="l"]  { --ib-space: 16px; }
+.btn[data-icon-only][data-width="narrow"][data-size="xl"] { --ib-space: 32px; }
+.btn[data-icon-only][data-width="wide"]                    { --ib-space: 14px; }
+.btn[data-icon-only][data-width="wide"][data-size="xs"]   { --ib-space: 10px; }
+.btn[data-icon-only][data-width="wide"][data-size="m"]    { --ib-space: 24px; }
+.btn[data-icon-only][data-width="wide"][data-size="l"]    { --ib-space: 48px; }
+.btn[data-icon-only][data-width="wide"][data-size="xl"]   { --ib-space: 72px; }
+
+/* Standard — 컨테이너 없음, 아이콘 on-surface-variant. 선택되면 Primary(글자용 보정 역할, 3:1 이상을 단계별로 보장). */
+.btn-standard { --btn-label: var(--on-surface-variant); }
+.btn-standard:is([aria-pressed="true"],[aria-checked="true"]) { --btn-label: var(--primary-on-bg, var(--primary)); }
+/* 아이콘 버튼의 비활성 아이콘은 on-surface 38%(IconButtonTokens.DisabledColor) — 글자 버튼(on-surface-variant 38%)과 다르다. */
+:root .btn[data-icon-only]:is(:disabled,[aria-disabled="true"]) { --btn-label: var(--text-disabled); }
+:root .btn-standard:is(:disabled,[aria-disabled="true"]) { --btn-container: transparent; }
+/* Outlined 아이콘 버튼의 비활성 윤곽선은 outline-variant 그대로(OutlinedIconButtonTokens.DisabledOutlineColor, 불투명도 없음). 선택된 토글은 윤곽선 없이 컨테이너 10%. */
+:root .btn-outlined[data-icon-only]:not([aria-pressed="true"]):is(:disabled,[aria-disabled="true"]) { --btn-outline: var(--outline-variant); }
+:root .btn-outlined[data-icon-only][aria-pressed="true"]:is(:disabled,[aria-disabled="true"]) { --btn-container: color-mix(in srgb, var(--text) 10%, transparent); }
+
+/* ════════════════════════════════════════
+   1-2. Split button — M3 Expressive (m3.material.io/components/split-button/specs, 2026-09-28 확인, 명세 4.1.10)
+   ────────────────────────────────────────
+   앞 버튼(동작) + 뒤 버튼(메뉴)을 2dp 간격으로 붙인다. 두 버튼은 .btn 그대로라 색 · 크기 · 상태가 버튼과 같다.
+     색   Elevated · Filled · Tonal · Outlined (Text 없음). 선택돼도 색은 바뀌지 않고 상태 레이어만 얹는다.
+     모양 바깥 모서리 full, 안쪽 모서리 XS 4 · S 4 · M 4 · L 8 · XL 12 → hover · focus · pressed에서 8 · 12 · 12 · 20 · 20.
+          뒤 버튼은 선택(메뉴 열림)되면 완전히 둥글어지고 아이콘이 가운데로 와서 180° 돈다.
+     치수 앞 버튼 좌우 여백 XS 12/10 · S 16/12 · M 24/24 · L 48/48 · XL 64/64,
+          뒤 버튼 아이콘 22 · 22 · 26 · 38 · 50, 좌우 13 · 13 · 15 · 29 · 43(폭 48 · 48 · 56 · 96 · 136),
+          비선택 아이콘 광학 보정 -1 · -1 · -2 · -3 · -6dp (Compose SplitButton*Tokens 18_0_18)
+   ════════════════════════════════════════ */
+.btn-split { display: inline-flex; align-items: stretch; gap: 2px; }
+.btn-split > .btn {
+  --split-inner: var(--md-shape-xs);
+  --split-inner-active: var(--md-shape-md);
+  --split-lead-end: 12px;
+  --split-icon: 22px;
+  --split-space: 13px;
+  --split-offset: -1px;
+  --split-r: var(--split-inner);
+  flex: none;
+}
+.btn-split > .btn[data-size="xs"] { --split-inner-active: var(--md-shape-sm); --split-lead-end: 10px; }
+.btn-split > .btn[data-size="m"]  { --split-lead-end: 24px; --split-icon: 26px; --split-space: 15px; --split-offset: -2px; }
+.btn-split > .btn[data-size="l"]  { --split-inner: var(--md-shape-sm); --split-inner-active: var(--md-shape-lg-increased); --split-lead-end: 48px; --split-icon: 38px; --split-space: 29px; --split-offset: -3px; }
+.btn-split > .btn[data-size="xl"] { --split-inner: var(--md-shape-md); --split-inner-active: var(--md-shape-lg-increased); --split-lead-end: 64px; --split-icon: 50px; --split-space: 43px; --split-offset: -6px; }
+.btn-split > .btn:is(:hover:not(:disabled), :focus-visible, :active:not(:disabled), [data-state="hover"], [data-state="focus"], [data-state="pressed"]) { --split-r: var(--split-inner-active); }
+/* 둥근 끝은 9999px 대신 높이의 절반(작은 안쪽 모서리와 섞일 때 CSS 비례 축소 방지) */
+.btn-split > [data-split="leading"] {
+  padding-inline-end: var(--split-lead-end);
+  border-radius: 0;
+  border-start-start-radius: calc(var(--btn-h) / 2); border-end-start-radius: calc(var(--btn-h) / 2);
+  border-start-end-radius: var(--split-r); border-end-end-radius: var(--split-r);
+}
+.btn-split > [data-split="trailing"] {
+  width: calc(var(--split-icon) + var(--split-space) * 2);
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  border-start-start-radius: var(--split-r); border-end-start-radius: var(--split-r);
+  border-start-end-radius: calc(var(--btn-h) / 2); border-end-end-radius: calc(var(--btn-h) / 2);
+}
+.btn-split > [data-split="trailing"]::before { inset: min(0px, calc((var(--btn-h) - 48px) / 2)) 0; }
+.btn-split > [data-split="trailing"] svg.icon {
+  width: var(--split-icon); height: var(--split-icon);
+  transform: translateX(var(--split-offset)) rotate(0deg);
+  transition: transform var(--md-motion-spring-expressive-default-spatial-duration) var(--md-motion-spring-expressive-default-spatial);
+}
+[dir="rtl"] .btn-split > [data-split="trailing"] svg.icon { transform: translateX(calc(var(--split-offset) * -1)) rotate(0deg); }
+.btn-split > [data-split="trailing"]:is([aria-expanded="true"], [data-selected]) { border-radius: calc(var(--btn-h) / 2); }
+.btn-split > [data-split="trailing"]:is([aria-expanded="true"], [data-selected]) svg.icon { transform: translateX(0) rotate(180deg); }
+/* 누름이 선택보다 우선한다 */
+.btn-split > [data-split="trailing"]:is([aria-expanded="true"], [data-selected]):is(:active:not(:disabled), [data-state="pressed"]) {
+  border-start-start-radius: var(--split-r); border-end-start-radius: var(--split-r);
+}
+@media (prefers-reduced-motion: reduce) { .btn-split > [data-split="trailing"] svg.icon { transition: none; } }
+.btn-split-wrap { display: inline-block; }
+.btn-split-status { font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--text); }
+
+/* ════════════════════════════════════════
+   1-3. FAB · Extended FAB — M3 Expressive (m3.material.io/components/floating-action-button · extended-fab/specs,
+        2026-09-28 확인, 명세 4.1.11)
+   ────────────────────────────────────────
+   크기  FAB 56 · Medium 80 · Large 96 (모서리 lg 16 · lg-increased 20 · xl 28, 아이콘 24 · 28 · 36)
+         Extended Small 56 · Medium 80 · Large 96, 좌우 16 · 26 · 28, 아이콘-라벨 8 · 12 · 16,
+         라벨 title-medium · title-large · headline-small. Small FAB · 기준(baseline) Extended FAB는 "권장 안 함"이라 만들지 않는다.
+   색    data-color = primary-container(기본) · secondary-container · tertiary-container · primary · secondary · tertiary
+         상태 레이어는 아이콘 색(currentColor).
+   높이  Level 3, hover Level 4, focus · pressed Level 3. 비활성 없음(M3: 쓸 수 없으면 FAB를 숨긴다).
+   ════════════════════════════════════════ */
+.m3-fab {
+  --fab-size: 56px;
+  --fab-icon: 24px;
+  --fab-radius: var(--md-shape-lg);
+  --fab-pad: 16px;
+  --fab-gap: 8px;
+  --fab-c: var(--primary-container);
+  --fab-o: var(--on-primary-container);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: var(--fab-size);
+  height: var(--fab-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--fab-radius);
+  background: var(--fab-c);
+  color: var(--fab-o);
+  box-shadow: var(--md-elevation-3);
+  font: var(--md-type-title-medium);
+  letter-spacing: var(--md-type-title-medium-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    box-shadow var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects),
+    padding var(--md-motion-spring-expressive-default-spatial-duration) var(--md-motion-spring-expressive-default-spatial),
+    gap var(--md-motion-spring-expressive-default-spatial-duration) var(--md-motion-spring-expressive-default-spatial);
+}
+.m3-fab::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: currentColor; opacity: 0; pointer-events: none; z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+html[data-style] .preview-root .m3-fab svg.icon-symbol,
+.m3-fab svg.icon-symbol { width: var(--fab-icon); height: var(--fab-icon); flex: none; fill: currentColor; stroke: none; }
+.m3-fab:hover, .m3-fab[data-state="hover"] { box-shadow: var(--md-elevation-4); }
+.m3-fab:hover::after, .m3-fab[data-state="hover"]::after { opacity: var(--md-state-hover); }
+.m3-fab:focus-visible::after, .m3-fab[data-state="focus"]::after { opacity: var(--md-state-focus); }
+.m3-fab[data-state="focus"] { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-fab:active, .m3-fab[data-state="pressed"] { box-shadow: var(--md-elevation-3); }
+.m3-fab:active::after, .m3-fab[data-state="pressed"]::after { opacity: var(--md-state-pressed); }
+
+.m3-fab[data-size="m"] { --fab-size: 80px; --fab-icon: 28px; --fab-radius: var(--md-shape-lg-increased); --fab-pad: 26px; --fab-gap: 12px; font: var(--md-type-title-large); letter-spacing: var(--md-type-title-large-tracking); }
+.m3-fab[data-size="l"] { --fab-size: 96px; --fab-icon: 36px; --fab-radius: var(--md-shape-xl); --fab-pad: 28px; --fab-gap: 16px; font: var(--md-type-headline-small); letter-spacing: var(--md-type-headline-small-tracking); }
+
+.m3-fab[data-color="secondary-container"] { --fab-c: var(--secondary-container); --fab-o: var(--on-secondary-container); }
+.m3-fab[data-color="tertiary-container"]  { --fab-c: var(--tertiary-container);  --fab-o: var(--on-tertiary-container); }
+.m3-fab[data-color="primary"]   { --fab-c: var(--primary);   --fab-o: var(--on-primary); }
+.m3-fab[data-color="secondary"] { --fab-c: var(--secondary); --fab-o: var(--on-secondary); }
+.m3-fab[data-color="tertiary"]  { --fab-c: var(--tertiary);  --fab-o: var(--on-tertiary); }
+
+/* Extended FAB — 아이콘 + 라벨. data-collapsed면 라벨을 접어 같은 크기의 FAB가 된다(스크롤하면 접힘 · 펼침). */
+.m3-fab[data-extended] { gap: var(--fab-gap); padding-inline: var(--fab-pad); }
+.m3-fab-label { display: inline-block; overflow: hidden; max-width: 20em; transition: max-width var(--md-motion-spring-expressive-default-spatial-duration) var(--md-motion-spring-expressive-default-spatial), opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-fab[data-extended][data-collapsed] { gap: 0; padding-inline: calc((var(--fab-size) - var(--fab-icon)) / 2); }
+.m3-fab[data-extended][data-collapsed] .m3-fab-label { max-width: 0; opacity: 0; }
+
+/* Live — 스크롤 목록 위 오른쪽 아래에 16dp 여백으로 띄운다(M3 Extended FAB margins 16dp). */
+.m3-fab-stage { position: relative; width: 320px; height: 320px; flex: none; overflow: hidden; border-radius: var(--md-shape-md); background: var(--bg); box-shadow: inset 0 0 0 1px var(--outline-variant); }
+.m3-fab-scroller { height: 100%; overflow-y: auto; }
+.m3-fab-list { list-style: none; margin: 0; padding: 0 var(--md-space-200) 88px; }
+.m3-fab-list li { padding: var(--md-space-200) 0; border-bottom: 1px solid var(--outline-variant); font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text); }
+.m3-fab-stage .m3-fab { position: absolute; inset-inline-end: var(--md-space-200); bottom: var(--md-space-200); }
+
+@media (prefers-reduced-motion: reduce) { .m3-fab, .m3-fab::after, .m3-fab-label { transition: none; } }
+@media (forced-colors: active) { .m3-fab { border: 1px solid ButtonText; } }
+
+/* ════════════════════════════════════════
+   2. Button groups — M3 Expressive (m3.material.io/components/button-groups/specs)
+   ────────────────────────────────────────
+   그룹은 색이 없는 투명 컨테이너다. 안의 버튼(.btn)이 색·크기·토글을 그대로 가진다.
+   크기는 그룹의 data-size(xs|s|m|l|xl, 기본 s)로 간격·모서리를 정하고, 버튼에도 같은 data-size를 준다.
+   ════════════════════════════════════════ */
+
+/* Standard button group — 버튼 사이 간격 XS 18 · S 12 · M/L/XL 8.
+   누르면 그 버튼이 15% 넓어지고 옆 버튼이 좁아진다(폭 합은 유지). */
+.btn-group {
+  --btn-group-gap: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--btn-group-gap);
+}
+.btn-group[data-size="xs"] { --btn-group-gap: 18px; }
+.btn-group:is([data-size="m"],[data-size="l"],[data-size="xl"]) { --btn-group-gap: 8px; }
+
+.btn-group > .btn { transition: padding var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), border-radius var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects), box-shadow var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+/* 누른 버튼은 폭이 15% 늘고 이웃 버튼이 그만큼 나눠 줄어든다(MDC childSizeChange 15% · Compose ExpandedRatio 0.15).
+   폭 계산은 스크립트가 --btn-width-delta로 넣는다. */
+.btn-group > .btn { padding-inline: calc(var(--btn-pad) + var(--btn-width-delta, 0px) / 2); }
+
+/* Connected button group — 간격 2px. 바깥 끝은 완전히 둥글고(round) 안쪽 모서리는 크기별
+   XS 4 · S 8 · M 8 · L 16 · XL 20. square 그룹은 바깥 모서리도 같은 값. 선택된 버튼만 형태가 바뀌고 이웃은 그대로다. */
+.btn-group-connected {
+  --btn-group-inner: 8px;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+}
+.btn-group-connected[data-size="xs"] { --btn-group-inner: 4px; }
+.btn-group-connected[data-size="l"]  { --btn-group-inner: 16px; }
+.btn-group-connected[data-size="xl"] { --btn-group-inner: 20px; }
+.btn-group-connected[data-shape="square"] { --btn-group-outer: var(--btn-group-inner); }
+/* round 그룹의 바깥 모서리는 9999px가 아니라 버튼 높이의 절반이다. 9999px면 안쪽 모서리(4~20px)와의 합이
+   폭을 넘어 브라우저가 네 모서리를 같은 비율로 줄이므로(CSS radius 비례 축소) 안쪽 모서리가 0처럼 보인다.
+   --btn-h는 버튼에 있으므로 값 계산은 버튼 쪽 규칙에서 한다. */
+
+.btn-group-connected > .btn {
+  flex: none;            /* 자식 폭은 내용에 맞춘다(MDC wrap_content) */
+  min-width: 48px;
+  --btn-radius: var(--btn-group-inner);
+  border-radius: var(--btn-radius);
+}
+.btn-group-connected > .btn:first-child { border-start-start-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); border-end-start-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); }
+.btn-group-connected > .btn:last-child  { border-start-end-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); border-end-end-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); }
+/* 누름: 안쪽 모서리가 더 각진다 */
+.btn-group-connected > .btn:active:not(:disabled),
+.btn-group-connected > .btn[data-state="pressed"] { --btn-radius: calc(var(--btn-group-inner) / 2); }
+/* 선택: 그 버튼만 완전히 둥글어진다(round 그룹). */
+.btn-group-connected > .btn:is([aria-checked="true"],[aria-pressed="true"]) { border-radius: calc(var(--btn-h) / 2); }
+.btn-group-connected[data-shape="square"] > .btn:is([aria-checked="true"],[aria-pressed="true"]) { border-radius: var(--btn-group-inner); }
+/* 누름이 선택보다 우선한다(MDC shape state list: pressed → checked → default). 선택된 버튼도 누르는 동안은 안쪽 모서리가 각진다. */
+.btn-group-connected > .btn:is(:active:not(:disabled),[data-state="pressed"]) { border-radius: calc(var(--btn-group-inner) / 2); }
+.btn-group-connected > .btn:first-child:is(:active:not(:disabled),[data-state="pressed"]) { border-start-start-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); border-end-start-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); }
+.btn-group-connected > .btn:last-child:is(:active:not(:disabled),[data-state="pressed"]) { border-start-end-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); border-end-end-radius: var(--btn-group-outer, calc(var(--btn-h) / 2)); }
+
+/* 간격이 2px뿐이라 포커스 링(간격 2 + 두께 3)이 이웃 버튼 가장자리에 걸친다. M3 Focused 견본처럼 링이 이웃 위에
+   온전히 보이도록 포커스된 버튼을 이웃보다 위로 올린다(뒤 형제가 링을 덮어 한쪽이 잘리던 문제). 분할 버튼도 같다. */
+:is(.btn-group-connected, .btn-split) > .btn:is(:focus-visible, [data-state="focus"]) { z-index: 1; }
+
+/* 그룹 안 토글 버튼은 호버해도 높이가 오르지 않는다(M3 버튼 그룹 상태 견본). */
+:is(.btn-group, .btn-group-connected) > .btn { --btn-shadow-hover: var(--btn-shadow); }
+
+/* 단일 선택(role=radio)도 토글 버튼 색을 쓴다 */
+.btn-tonal[aria-checked="true"]    { --btn-container: var(--secondary); --btn-label: var(--on-secondary); }
+.btn-filled[aria-checked="false"]  { --btn-container: var(--surface-container, var(--surface)); --btn-label: var(--on-surface-variant); }
+.btn-filled[aria-checked="true"]   { --btn-container: var(--primary); --btn-label: var(--on-primary); }
+.btn-outlined[aria-checked="true"] { --btn-container: var(--inverse-surface); --btn-label: var(--on-inverse-surface); --btn-outline: transparent; }
+
+/* overflowMode=wrap — 폭이 모자라면 다음 줄로 넘긴다. menu 모드(넘친 버튼을 메뉴로 접기)는 아직 없다. */
+:is(.btn-group, .btn-group-connected)[data-overflow="wrap"] { flex-wrap: wrap; row-gap: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-group > .btn { transition: none; }
+}
+
+/* ─── Segmented Buttons (세그먼트 버튼) ─── */
+
+/* 선택된 세그먼트만 채움 (원리 P1) */
+
+/* ─── 옛 FAB (.fab) — 갤러리에서는 더 쓰지 않는다(Navigation rail도 .m3-fab, 2026-10-03). 템플릿 호환으로 남긴다. ─── */
+.fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.fab:hover {
+  transform: scale(1.05);
+  background-color: color-mix(in srgb, var(--accent) var(--state-hover), var(--surface));
+}
+/* 다크 절감형: small 크기 기본 (원리 P1, P5) */
+
+[data-style="dark-saving"] .fab {
+  box-shadow: none;
+  border: 1px solid var(--accent);
+  background-color: transparent;
+}
+[data-style="light-saving"] .fab {
+  background-color: var(--accent);
+  color: var(--on-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: none;
+}
+
+/* ─── 옛 아이콘 버튼 (.btn-icon) — 아직 다시 만들지 않은 컴포넌트(App bar 옛 견본 · 드로어 · 시트 · 검색 등)만 쓴다.
+   Buttons의 아이콘 버튼은 .btn[data-icon-only](1-1). ─── */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+.btn-icon:hover {
+  background-color: color-mix(in srgb, var(--text) var(--state-hover), transparent);
+}
+.btn-icon-outlined {
+  border: 1px solid var(--border-strong);
+}
+.btn-icon[aria-pressed="true"] {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+
+/* ════════════════════════════════════════
+   2. Text Inputs & Search (입력 필드)
+   ════════════════════════════════════════ */
+
+.field-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.field-container .icon-leading {
+  position: absolute;
+  left: 12px;
+  color: var(--text);
+  opacity: 0.5;
+  pointer-events: none;
+}
+/* M3 Outlined 텍스트 필드 (어두운 절감형 치환 규칙, 언더라인 아님) */
+.input-field {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  font: var(--md-type-body-large);
+  letter-spacing: var(--md-type-body-large-tracking);
+  color: var(--text);
+  background-color: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.field-container:has(.icon-leading) .input-field {
+  padding-left: 42px;
+}
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+/* 오류는 Primary가 아니라 error 역할로 알린다(M3 · 기준서 ACC-02).
+   색만으로 알리지 않도록 도움말 문구와 함께 쓴다. */
+.input-field[aria-invalid="true"] {
+  border-color: var(--error);
+  box-shadow: 0 0 0 1px var(--error);
+}
+
+/* Light saving: 채움형(Filled) 텍스트 필드 허용 */
+[data-style="light-saving"] .input-field {
+  background-color: var(--surface);
+  border-color: color-mix(in srgb, var(--text) 20%, transparent);
+}
+
+/* ─── Search Bar ─── */
+
+/* ════════════════════════════════════════
+   3. Selection (선택 컴포넌트)
+   ════════════════════════════════════════ */
+
+/* Checkbox — M3 (명세 4.6.1)
+   ────────────────────────────────────────
+   유형   선택 · 비선택 · 불확정(indeterminate), 각각 오류(error) 가능
+   수치   MDC-Android checkbox tokens.xml · color/m3_checkbox_button_*_tint.xml · m3_selection_control_ripple_color_selector.xml,
+          Compose CheckboxTokens · Checkbox.kt(2026-09-27 확인)
+     상자 18 · 모서리 2 · 테두리 2 · 아이콘 18 · 상태 레이어 40(원) · 터치 타깃 48
+     색 비선택 테두리 on-surface-variant(hover·focus·pressed on-surface) · 선택 primary + on-primary 아이콘
+        오류 error + on-error · 비활성 on-surface 38%(선택은 채움, 아이콘 surface)
+     상태 레이어 비선택 hover·focus on-surface / pressed primary, 선택 hover·focus primary / pressed on-surface, 오류 error
+     글자 on-surface(선택 여부와 무관), 포커스 링 secondary */
+
+.m3-checkbox {
+  --cb-bg: transparent;
+  --cb-border: var(--on-surface-variant);
+  --cb-icon: var(--on-primary);
+  --cb-layer: var(--text);
+  --cb-layer-o: 0;
+  --cb-border-active: var(--text);     /* 비선택 hover · focus · pressed 테두리 */
+  --cb-layer-press: var(--primary);    /* 누름 상태 레이어: 비선택 primary · 선택 on-surface · 오류 error */
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  vertical-align: middle;
+}
+.m3-checkbox-input {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.library-page .m3-checkbox-input:focus-visible { outline: none; }
+html[data-style] .preview-root .m3-checkbox .m3-checkbox-input:disabled { opacity: 0; }   /* 공통 비활성 규칙(opacity .38)이 투명 입력을 드러내지 않게 */
+.m3-checkbox-layer {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.m3-checkbox-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--cb-layer);
+  opacity: var(--cb-layer-o);
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-checkbox-box {
+  position: relative;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--cb-border);
+  --checkbox-radius: 2px;   /* 컴포넌트 토큰(M3 checkbox container shape 2dp) */
+  border-radius: var(--checkbox-radius);
+  background: var(--cb-bg);
+  transition: background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects), border-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-checkbox-icon {
+  position: absolute;
+  inset: -2px;
+  width: 18px;
+  height: 18px;
+  fill: var(--cb-icon);
+  stroke: none;
+}
+html[data-style] .preview-root .m3-checkbox-icon { fill: var(--cb-icon); stroke: none; }
+.m3-checkbox-check, .m3-checkbox-dash { display: none; }
+
+/* 선택 · 불확정 */
+.m3-checkbox:is([data-checked="true"], [data-checked="mixed"], :has(> .m3-checkbox-input:checked), :has(> .m3-checkbox-input:indeterminate)) {
+  --cb-bg: var(--primary);
+  --cb-border: var(--primary);
+  --cb-layer: var(--primary);
+  --cb-layer-press: var(--text);
+}
+.m3-checkbox:is([data-checked="true"], :has(> .m3-checkbox-input:checked:not(:indeterminate))) .m3-checkbox-check { display: inline; }
+.m3-checkbox:is([data-checked="mixed"], :has(> .m3-checkbox-input:indeterminate)) .m3-checkbox-dash { display: inline; }
+
+/* 상태 — hover · focus · pressed(형태 변화 없음, 상태 레이어만) */
+:is(.m3-checkbox-field:hover .m3-checkbox, .m3-checkbox:hover, .m3-checkbox[data-state="hover"]) { --cb-layer-o: var(--state-hover); }
+:is(.m3-checkbox:has(> .m3-checkbox-input:focus-visible), .m3-checkbox[data-state="focus"]) { --cb-layer-o: var(--state-focus); }
+:is(.m3-checkbox:has(> .m3-checkbox-input:focus-visible), .m3-checkbox[data-state="focus"]) .m3-checkbox-layer { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+:is(.m3-checkbox:has(> .m3-checkbox-input:active), .m3-checkbox-field:active .m3-checkbox, .m3-checkbox[data-state="pressed"]) { --cb-layer-o: var(--state-press); --cb-layer: var(--cb-layer-press); }
+/* 비선택의 hover · focus · pressed 테두리(오류면 error, 비활성이면 38% — 변수로 우선순위를 넘긴다) */
+.m3-checkbox:not([data-checked="true"], [data-checked="mixed"], :has(> .m3-checkbox-input:checked), :has(> .m3-checkbox-input:indeterminate)):is(:hover, [data-state], :has(> .m3-checkbox-input:focus-visible)),
+.m3-checkbox-field:hover .m3-checkbox:not([data-checked="true"], [data-checked="mixed"], :has(> .m3-checkbox-input:checked), :has(> .m3-checkbox-input:indeterminate)) { --cb-border: var(--cb-border-active); }
+
+/* 오류 */
+:is([data-error="on"] .m3-checkbox, .m3-checkbox:has(> .m3-checkbox-input[aria-invalid="true"])) { --cb-border: var(--error); --cb-border-active: var(--error); --cb-layer: var(--error); --cb-layer-press: var(--error); }
+:is([data-error="on"] .m3-checkbox, .m3-checkbox:has(> .m3-checkbox-input[aria-invalid="true"])):is([data-checked="true"], [data-checked="mixed"], :has(> .m3-checkbox-input:checked), :has(> .m3-checkbox-input:indeterminate)) {
+  --cb-bg: var(--error);
+  --cb-border: var(--error);
+  --cb-icon: var(--on-error);
+  --cb-layer: var(--error);
+  --cb-layer-press: var(--error);
+}
+
+/* 비활성 — 오류보다 우선 */
+.m3-checkbox:is([data-disabled="true"], :has(> .m3-checkbox-input:disabled)) {
+  --cb-border: var(--text-disabled);
+  --cb-border-active: var(--text-disabled);
+  --cb-layer-o: 0 !important;   /* 비활성은 상태 레이어 없음 */
+}
+.m3-checkbox:is([data-disabled="true"], :has(> .m3-checkbox-input:disabled)):is([data-checked="true"], [data-checked="mixed"], :has(> .m3-checkbox-input:checked), :has(> .m3-checkbox-input:indeterminate)) {
+  --cb-bg: var(--text-disabled);
+  --cb-border: transparent;
+  --cb-icon: var(--bg);
+}
+.m3-checkbox:has(> .m3-checkbox-input:disabled) .m3-checkbox-input { cursor: default; }
+
+/* 라벨 줄 — 라벨을 눌러도 선택(M3 접근성), 글자는 on-surface */
+.m3-checkbox-field { display: inline-flex; align-items: center; gap: 4px; min-height: 48px; padding-inline-end: 16px; cursor: pointer; color: var(--text); }
+.m3-checkbox-text { font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text); }   /* body-large */
+.m3-checkbox-field:has(.m3-checkbox-input:disabled) { cursor: default; }
+.m3-checkbox-field:has(.m3-checkbox-input:disabled) .m3-checkbox-text { color: var(--text-disabled); }
+
+/* 견본 */
+.m3-checkbox-table td { text-align: center; }
+.m3-checkbox-group { display: flex; flex-direction: column; align-items: flex-start; margin: 0; padding: 0; border: 0; }
+.m3-checkbox-children { list-style: none; margin: 0; padding: 0 0 0 32px; display: flex; flex-direction: column; }
+.m3-checkbox-divider { width: 100%; max-width: 280px; height: 1px; margin: 8px 0; background: var(--outline-variant); }
+
+@media (prefers-reduced-motion: reduce) { .m3-checkbox-layer::before, .m3-checkbox-box { transition: none; } }
+@media (forced-colors: active) {
+  .m3-checkbox-box { border-color: CanvasText; forced-color-adjust: none; }
+  .m3-checkbox:is(:has(> .m3-checkbox-input:checked), :has(> .m3-checkbox-input:indeterminate)) .m3-checkbox-box { background: Highlight; border-color: Highlight; }
+  .m3-checkbox-icon { fill: HighlightText; }
+}
+
+/* Radio button — M3 (명세 4.6.4)
+   ────────────────────────────────────────
+   수치   MDC-Android radiobutton tokens.xml · color/m3_radiobutton_*_tint.xml, Compose RadioButtonTokens · RadioButton.kt(2026-10-03 확인)
+     아이콘 20(테두리 2) · 점 지름 10(Compose 점 12 − 테두리 2) · 상태 레이어 40(원) · 터치 타깃 48
+     색 비선택 on-surface-variant(hover·focus·pressed on-surface) · 선택 primary · 비활성 on-surface 38%
+     상태 레이어 선택 hover·focus primary / pressed on-surface, 비선택 hover·focus on-surface / pressed primary
+     점 움직임 Compose FastSpatial 스프링 · 색 DefaultEffects. 글자 on-surface body-large, 포커스 링 secondary */
+.m3-radio {
+  --rb-color: var(--on-surface-variant);
+  --rb-layer: var(--text);
+  --rb-layer-o: 0;
+  --rb-layer-press: var(--primary);
+  --rb-dot: 0;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  vertical-align: middle;
+}
+.m3-radio-input { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.library-page .m3-radio-input:focus-visible { outline: none; }
+html[data-style] .preview-root .m3-radio .m3-radio-input:disabled { opacity: 0; }
+.m3-radio-layer { position: absolute; width: 40px; height: 40px; border-radius: var(--md-shape-full); pointer-events: none; }
+.m3-radio-layer::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--rb-layer); opacity: var(--rb-layer-o);
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-radio-ring {
+  position: relative; box-sizing: border-box; display: grid; place-items: center;
+  width: 20px; height: 20px; border: 2px solid var(--rb-color); border-radius: var(--md-shape-full);
+  transition: border-color var(--md-motion-spring-expressive-default-effects-duration) var(--md-motion-spring-expressive-default-effects);
+}
+.m3-radio-ring::after {
+  content: ''; width: 10px; height: 10px; border-radius: var(--md-shape-full); background: var(--rb-color);
+  transform: scale(var(--rb-dot));
+  transition: transform var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial),
+              background-color var(--md-motion-spring-expressive-default-effects-duration) var(--md-motion-spring-expressive-default-effects);
+}
+/* 선택 */
+.m3-radio:is([data-checked="true"], :has(> .m3-radio-input:checked)) { --rb-color: var(--primary); --rb-layer: var(--primary); --rb-layer-press: var(--text); --rb-dot: 1; }
+/* 상태 */
+:is(.m3-radio-field:hover .m3-radio, .m3-radio:hover, .m3-radio[data-state="hover"]) { --rb-layer-o: var(--state-hover); }
+:is(.m3-radio:has(> .m3-radio-input:focus-visible), .m3-radio[data-state="focus"]) { --rb-layer-o: var(--state-focus); }
+:is(.m3-radio:has(> .m3-radio-input:focus-visible), .m3-radio[data-state="focus"]) .m3-radio-layer { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+:is(.m3-radio:has(> .m3-radio-input:active), .m3-radio-field:active .m3-radio, .m3-radio[data-state="pressed"]) { --rb-layer-o: var(--state-press); --rb-layer: var(--rb-layer-press); }
+.m3-radio:not([data-checked="true"], :has(> .m3-radio-input:checked)):is(:hover, [data-state], :has(> .m3-radio-input:focus-visible)),
+.m3-radio-field:hover .m3-radio:not([data-checked="true"], :has(> .m3-radio-input:checked)) { --rb-color: var(--text); }
+/* 비활성 — 상태 레이어 없음 */
+.m3-radio:is([data-disabled="true"], :has(> .m3-radio-input:disabled)) { --rb-color: var(--text-disabled) !important; --rb-layer-o: 0 !important; }
+.m3-radio:has(> .m3-radio-input:disabled) .m3-radio-input { cursor: default; }
+/* 라벨 줄 — 라벨을 눌러도 선택 */
+.m3-radio-field { display: inline-flex; align-items: center; gap: 4px; min-height: 48px; padding-inline-end: 16px; cursor: pointer; }
+.m3-radio-field.m3-radio-field .m3-radio-text { font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text); }
+.m3-radio-field:has(.m3-radio-input:disabled) { cursor: default; }
+.m3-radio-field.m3-radio-field:has(.m3-radio-input:disabled) .m3-radio-text { color: var(--text-disabled); }
+/* 견본 */
+.m3-radio-table td { text-align: center; }
+.m3-radio-group { display: flex; flex-direction: column; align-items: flex-start; margin: 0; padding: 0; border: 0; }
+.m3-radio-group--row { flex-direction: row; flex-wrap: wrap; }
+.m3-radio-group.m3-radio-group .m3-radio-legend { padding: 0; margin-bottom: 4px; font: var(--md-type-title-small); letter-spacing: var(--md-type-title-small-tracking); color: var(--on-surface-variant); }
+@media (prefers-reduced-motion: reduce) { .m3-radio-layer::before, .m3-radio-ring, .m3-radio-ring::after { transition: none; } }
+@media (forced-colors: active) {
+  .m3-radio-ring { border-color: CanvasText; forced-color-adjust: none; }
+  .m3-radio-ring::after { background: CanvasText; }
+  .m3-radio:has(> .m3-radio-input:checked) .m3-radio-ring { border-color: Highlight; }
+  .m3-radio:has(> .m3-radio-input:checked) .m3-radio-ring::after { background: Highlight; }
+}
+
+/* Switch */
+.toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  min-height: 44px;
+}
+.toggle-track {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border-strong);
+  background-color: transparent;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+.toggle-track input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  margin: 0;
+}
+.toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform var(--transition-base), background-color var(--transition-base);
+}
+.toggle-track:has(input:checked) {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.toggle-track:has(input:checked) .toggle-thumb {
+  transform: translateX(20px);
+  background: var(--on-primary);
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+}
+
+/* Sliders (SC 2.5.8 타깃 24px 이상 보장) */
+.sample-range {
+  width: 100%;
+  height: 24px;
+  min-height: 24px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  --range-percent: 40%;
+}
+.sample-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--range-percent), color-mix(in srgb, var(--text) 20%, transparent) var(--range-percent));
+}
+.sample-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+/* ════════════════════════════════════════
+   4. Communication (배지, 툴팁, 로딩)
+   ════════════════════════════════════════ */
+
+/* Badges (점 배지, 숫자 배지) */
+
+/* 배지는 알림이라 M3가 error 역할을 쓴다. 파생 팔레트의 error를 그대로 따른다. */
+
+/* ════════════════════════════════════════
+   Badges — M3 (명세 4.7.1)
+   ────────────────────────────────────────
+   변형   data-size = small(점) | large(숫자·짧은 글자, 최대 4자 "999+")
+   수치   MDC-Android badge tokens.xml · dimens.xml, Compose BadgeTokens · Badge.kt(2026-09-27 확인)
+     small 6×6 · 모서리 full(3) / large 높이 16 · 한 자리 16×16 · 좌우 4 · 모서리 full(8) · 글자 label-small 11/16
+     위치 아이콘(24) 오른쪽 위 모서리 기준, 배지의 아래·앞쪽 모서리가 small 6×6 · large 세로 14 × 가로 12 안쪽
+          (글자가 늘면 오른쪽으로 자람, RTL은 좌우 반전 — inset-inline-start로 자동)
+     색 container error · 글자 on-error
+     최대 폭 34 — 글꼴이 넓어 넘치면 자간을 줄여 맞춘다(scripts/badge.js badgeTracking, 최저 -1.5px)
+   ════════════════════════════════════════ */
+
+.badge-host {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+.badge-host > svg.icon-symbol,
+.badge-host svg.icon-symbol { width: 24px; height: 24px; fill: currentColor; stroke: none; }
+html[data-style] .preview-root .badge-host svg.icon-symbol { fill: currentColor; stroke: none; }
+
+.badge {
+  position: absolute;
+  box-sizing: border-box;
+  background: var(--error);
+  color: var(--on-error);
+  pointer-events: none;
+}
+.badge[data-size="small"] {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  inset-inline-start: calc(100% - 6px);
+  bottom: calc(100% - 6px);
+}
+.badge[data-size="large"] {
+  min-width: 16px;
+  height: 16px;
+  padding-inline: 4px;
+  border-radius: var(--md-shape-sm);
+  inset-inline-start: calc(100% - 12px);
+  bottom: calc(100% - 14px);
+  font: var(--md-type-label-small);        /* label-small 11/16 */
+  letter-spacing: var(--md-type-label-small-tracking);
+  text-align: center;
+  white-space: nowrap;
+  direction: ltr;                                    /* "999+"가 RTL에서 "+999"로 뒤집히지 않게 */
+  unicode-bidi: isolate;
+}
+/* 뒤쪽 요소 자리(목록 끝 등)에 놓는 large 배지 — 아이콘에 붙이지 않음 */
+.badge[data-placement="trailing"] { position: static; flex: none; }
+.badge[hidden] { display: none !important; }
+
+/* Navigation 항목(세로형) — 표시기 56×32 · 아이콘 24 · 라벨 label-medium · 간격 4 */
+.badge-nav { display: flex; flex: none; gap: 0; background: var(--surface); border-radius: var(--md-shape-md); padding: 12px 0 16px; }
+.badge-nav-item {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--on-surface-variant);
+  font: inherit;
+}
+button.badge-nav-item { cursor: pointer; }
+.badge-nav-indicator {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--md-shape-lg);
+}
+.badge-nav-indicator::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.badge-nav-item[data-active="true"] .badge-nav-indicator { background: var(--secondary-container); color: var(--on-secondary-container); }
+.badge-nav-label { font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); color: var(--on-surface-variant); }
+.badge-nav-item[data-active="true"] .badge-nav-label { color: var(--secondary-on-bg); }   /* M3 secondary를 글자용으로 — 현재 단계 본문 기준(4.1.8) */
+button.badge-nav-item:hover .badge-nav-indicator::after { opacity: var(--state-hover); }
+button.badge-nav-item:active .badge-nav-indicator::after { opacity: var(--state-press); }
+button.badge-nav-item:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); border-radius: var(--md-shape-lg); }
+.badge-icon-on { display: none; }
+.badge-nav-item[data-active="true"] .badge-icon-on { display: contents; }
+.badge-nav-item[data-active="true"] .badge-icon-off { display: none; }
+.badge-icon-off { display: contents; }
+
+/* Trailing — 목록 행 끝의 large 배지 */
+.badge-list { list-style: none; margin: 0; padding: 0; width: min(100%, 360px); background: var(--bg); border: 1px solid var(--outline-variant); border-radius: var(--md-shape-md); }
+.badge-list-row { display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 8px 24px 8px 16px; box-sizing: border-box; color: var(--on-surface-variant); }
+.badge-list-row + .badge-list-row { border-top: 1px solid var(--outline-variant); }
+.badge-list-row > svg.icon-symbol,
+html[data-style] .preview-root .badge-list-row > svg.icon-symbol { width: 24px; height: 24px; fill: currentColor; stroke: none; flex: none; }
+.badge-list-text { flex: 1 1 auto; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text); }
+
+/* RTL 견본 — 줄은 다른 블록처럼 왼쪽에서 시작하고, 안쪽만 좌우 반전 */
+
+.badge-live { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.badge-nav--live { display: flex; width: min(100%, 360px); justify-content: space-around; }
+
+@media (prefers-reduced-motion: reduce) { .badge-nav-indicator::after { transition: none; } }
+@media (forced-colors: active) {
+  .badge { forced-color-adjust: none; background: CanvasText; color: Canvas; }
+}
+
+/* Tooltips */
+
+/* Loading & Progress */
+
+/* ════════════════════════════════════════
+   Date pickers — M3 (명세 4.2.1)
+   ────────────────────────────────────────
+   변형   data-variant = docked | modal | input
+   수치   M3 Date pickers Specs 토큰, MDC-Android datepicker tokens.xml, Compose DatePickerModalTokens · DatePicker.kt(2026-09-27 확인)
+     Docked  폭 360 · 높이 456 · 모서리 lg(16) · 머리(월·연 메뉴) 64 · 날짜 칸 48 · 원 40
+     Modal   폭 360 · 모서리 xl(28) · 머리 120(범위 128) · 월·연 줄 56 · 좌우 여백 12 · 연 72×36
+     Input   폭 328 · 머리 120 · 입력 칸 outlined 56
+     공통    그림자 3 · surface-container-high · 요일·날짜 body-large · 머리 제목 headline-large(범위 title-large)
+             · 보조 글 label-large · 오늘 테두리 1 primary · 선택 primary/on-primary · 범위 secondary-container
+   ════════════════════════════════════════ */
+
+.m3-dp {
+  --dp-cell: 48px;
+  --dp-circle: 40px;
+  --dp-pad: 12px;
+  --dp-fg: var(--text-on-container, var(--text));
+  --dp-fg-variant: var(--on-surface-variant);
+  --dp-primary-text: var(--primary-on-bg, var(--primary));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 360px;
+  flex: none;
+  overflow: hidden;
+  border-radius: var(--md-shape-xl);
+  background: var(--surface-container-high, var(--surface));
+  color: var(--dp-fg);
+  box-shadow: var(--md-elevation-3);
+  font: var(--md-type-body-large);
+  letter-spacing: var(--md-type-body-large-tracking);
+  text-align: start;
+}
+.m3-dp[data-variant="docked"] { height: 456px; border-radius: var(--md-shape-lg); }
+.m3-dp[data-variant="modal"] { height: 568px; }
+.m3-dp[data-variant="input"] { width: 328px; }
+.m3-dp[data-range] { height: 568px; }
+.m3-dp[hidden], .m3-dp [hidden] { display: none !important; }
+
+/* 머리(Modal · Input) — 보조 글(label-large) 위, 제목(headline-large) 아래, 오른쪽 입력 전환 아이콘 */
+.m3-dp-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
+  align-items: end;
+  box-sizing: border-box;
+  height: 120px;
+  padding: 16px 12px 12px 24px;
+  flex: none;
+}
+.m3-dp[data-range] .m3-dp-header { height: 128px; }
+.m3-dp-supporting {
+  grid-column: 1 / -1;
+  align-self: start;
+  color: var(--dp-fg-variant);
+  font: var(--md-type-label-large);
+  letter-spacing: var(--md-type-label-large-tracking);
+}
+.m3-dp-headline {
+  color: var(--dp-fg-variant);
+  font: var(--md-type-headline-large);
+  letter-spacing: var(--md-type-headline-large-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m3-dp[data-range] .m3-dp-headline { font: var(--md-type-title-large); letter-spacing: var(--md-type-title-large-tracking); }
+.m3-dp-divider { height: 1px; flex: none; background: var(--outline-variant); }
+
+/* 아이콘 버튼(표준 · 48 터치 · 40 상태 레이어 · 24 아이콘) */
+.m3-dp-iconbtn {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--md-shape-full);
+  background: transparent;
+  color: var(--dp-fg-variant);
+  cursor: pointer;
+}
+.m3-dp-iconbtn::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: var(--dp-layer-o, 0);
+  z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+
+/* 메뉴 버튼(월 · 연 선택) — 높이 40, label-large, 뒤 화살표 18 */
+.m3-dp-menubtn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  --dp-menubtn-h: 40px;
+  height: var(--dp-menubtn-h);
+  margin: 4px 0;
+  padding: 0 8px 0 12px;
+  border: 0;
+  border-radius: calc(var(--dp-menubtn-h) / 2);   /* full — 높이의 절반 */
+  background: transparent;
+  color: var(--dp-fg-variant);
+  font: var(--md-type-label-large);
+  letter-spacing: var(--md-type-label-large-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.m3-dp-menubtn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: var(--dp-layer-o, 0);
+  z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-dp-menubtn[aria-expanded="true"] .m3-dp-arrow { transform: rotate(180deg); }
+
+.m3-dp svg.icon-symbol, html[data-style] .preview-root :is(.m3-dp, .m3-picker-cell-surface) svg.icon-symbol { width: 24px; height: 24px; flex: none; fill: currentColor; stroke: none; }
+.m3-dp .m3-dp-arrow,
+html[data-style] .preview-root :is(.m3-dp, .m3-picker-cell-surface) svg.m3-dp-arrow { width: 18px; height: 18px; transition: transform var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial); }
+
+/* 월·연 줄 — Docked는 두 묶음([‹][메뉴][›]) 64, Modal은 메뉴 + 이전·다음 56 */
+.m3-dp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 56px;
+  padding-inline: var(--dp-pad);
+  flex: none;
+}
+.m3-dp[data-variant="docked"] .m3-dp-nav { height: 64px; padding-inline: 4px; }
+.m3-dp-nav-group { display: flex; align-items: center; }
+.m3-dp[data-variant="modal"] .m3-dp-nav .m3-dp-menubtn { margin-inline-start: 4px; }
+
+/* 요일 · 날짜 격자 — 칸 48, 원 40 */
+.m3-dp-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; padding-inline: var(--dp-pad); }
+.m3-dp-weekdays,
+.m3-dp-week { display: grid; grid-template-columns: repeat(7, var(--dp-cell)); }
+.m3-dp-weekdays { height: var(--dp-cell); align-items: center; justify-items: center; color: var(--dp-fg); flex: none; }
+.m3-dp-weekday { font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); }
+.m3-dp-grid { display: flex; flex-direction: column; }
+.m3-dp-cell { position: relative; display: grid; place-items: center; width: var(--dp-cell); height: var(--dp-cell); }
+
+.m3-dp-day {
+  --dp-day-fg: var(--dp-fg);
+  --dp-day-bg: transparent;
+  --dp-day-outline: transparent;
+  --dp-layer: var(--dp-fg-variant);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--dp-circle);
+  height: var(--dp-circle);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--dp-day-outline);
+  border-radius: 50%;
+  background: var(--dp-day-bg);
+  color: var(--dp-day-fg);
+  font: var(--md-type-body-large);
+  letter-spacing: var(--md-type-body-large-tracking);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+button.m3-dp-day::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; }   /* 터치 타깃 48 */
+.m3-dp-day::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: var(--dp-layer);
+  opacity: var(--dp-layer-o, 0);
+  z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-dp-day[data-today] { --dp-day-fg: var(--dp-primary-text); --dp-day-outline: var(--primary); --dp-layer: var(--primary); }
+.m3-dp-day:is([aria-selected="true"], [data-selected]) { --dp-day-fg: var(--on-primary); --dp-day-bg: var(--primary); --dp-day-outline: transparent; --dp-layer: var(--on-primary); }
+.m3-dp-day[data-outside] { --dp-day-fg: var(--text-disabled); }
+.m3-dp-cell[data-range] .m3-dp-day:not([aria-selected="true"], [data-selected]) { --dp-day-fg: var(--on-secondary-container); --dp-layer: var(--on-secondary-container); }
+/* 범위 띠 — secondary-container, 높이 40, 시작·끝은 반쪽만 */
+.m3-dp-cell[data-range]::before {
+  content: '';
+  position: absolute;
+  top: calc((var(--dp-cell) - var(--dp-circle)) / 2);
+  bottom: calc((var(--dp-cell) - var(--dp-circle)) / 2);
+  left: 0;
+  right: 0;
+  background: var(--secondary-container);
+  z-index: 0;
+}
+.m3-dp-cell[data-range="start"]::before { left: 50%; }
+.m3-dp-cell[data-range="end"]::before { right: 50%; }
+.m3-dp-cell[data-range="single"]::before { display: none; }
+.m3-dp-cell > .m3-dp-day { z-index: 1; }
+
+/* 연 선택 — Modal은 3열 격자(72×36 알약), Docked는 메뉴 목록 */
+.m3-dp-years {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 16px;
+  align-content: start;
+  justify-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px var(--dp-pad);
+  scrollbar-width: thin;
+}
+.m3-dp-year {
+  --dp-day-fg: var(--dp-fg-variant);
+  --dp-day-bg: transparent;
+  --dp-day-outline: transparent;
+  --dp-layer: var(--dp-fg-variant);
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  --dp-year-h: 36px;
+  display: inline-grid;
+  place-items: center;
+  width: 72px;
+  height: var(--dp-year-h);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--dp-day-outline);
+  border-radius: calc(var(--dp-year-h) / 2);   /* full — 높이의 절반 */
+  background: var(--dp-day-bg);
+  color: var(--dp-day-fg);
+  font: var(--md-type-body-large);
+  letter-spacing: var(--md-type-body-large-tracking);
+  cursor: pointer;
+}
+button.m3-dp-year::before { content: ''; position: absolute; inset: -6px 0; }   /* 터치 타깃 48 */
+.m3-dp-year::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; background: var(--dp-layer); opacity: var(--dp-layer-o, 0); z-index: -1; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-dp-year[data-today] { --dp-day-fg: var(--dp-primary-text); --dp-day-outline: var(--primary); --dp-layer: var(--primary); }
+.m3-dp-year:is([aria-selected="true"], [data-selected]) { --dp-day-fg: var(--on-primary); --dp-day-bg: var(--primary); --dp-day-outline: transparent; --dp-layer: var(--on-primary); }
+
+.m3-dp-menu { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; padding: 8px 0; list-style: none; border-top: 1px solid var(--outline-variant); scrollbar-width: thin; }
+.m3-dp-menuitem {
+  --dp-layer: var(--dp-fg);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  margin: 0;
+  padding: 0 16px 0 56px;
+  border: 0;
+  background: transparent;
+  color: var(--dp-fg);
+  font: var(--md-type-body-large);
+  letter-spacing: var(--md-type-body-large-tracking);
+  text-align: start;
+  cursor: pointer;
+}
+.m3-dp-menuitem::after { content: ''; position: absolute; inset: 0; background: var(--dp-layer); opacity: var(--dp-layer-o, 0); z-index: -1; }
+.m3-dp-menuitem:is([aria-selected="true"], [data-selected]) { padding-inline-start: 16px; background: var(--surface-container-highest, var(--surface)); }
+.m3-dp-menuitem .m3-dp-check { display: none; }
+.m3-dp-menuitem:is([aria-selected="true"], [data-selected]) .m3-dp-check { display: block; }
+
+/* 동작 버튼 줄 */
+.m3-dp-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; box-sizing: border-box; min-height: 56px; padding: 0 12px 8px; flex: none; }
+
+/* 범위(Modal) — 달마다 소제목(title-small) + 격자, 세로 스크롤 */
+.m3-dp-months { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.m3-dp-month-subhead { padding: 20px 12px 8px; color: var(--dp-fg-variant); font: var(--md-type-title-small); letter-spacing: var(--md-type-title-small-tracking); }
+.m3-dp[data-range] .m3-dp-weekdays { padding-inline: var(--dp-pad); border-bottom: 1px solid var(--outline-variant); }
+
+/* 날짜 입력(outlined 텍스트 필드 56) — Text fields를 M3로 다시 만들면 그쪽 규칙으로 옮긴다 */
+.m3-dp-inputbody { padding: 16px 24px 8px; }
+
+   /* 텍스트 필드의 포커스 표시는 2px primary 테두리(M3) */
+
+/* 상태 — 상태 레이어는 내용 색 hover 8 · focus 10 · press 10 */
+:is(.m3-dp-day, .m3-dp-year, .m3-dp-menubtn, .m3-dp-iconbtn, .m3-dp-menuitem):is(:not(:disabled):hover, [data-state="hover"]) { --dp-layer-o: var(--state-hover); }
+:is(.m3-dp-day, .m3-dp-year, .m3-dp-menubtn, .m3-dp-iconbtn, .m3-dp-menuitem):is(:focus-visible, [data-state="focus"]) { --dp-layer-o: var(--state-focus); }
+:is(.m3-dp-day, .m3-dp-year, .m3-dp-menubtn, .m3-dp-iconbtn, .m3-dp-menuitem):is(:not(:disabled):active, [data-state="pressed"]) { --dp-layer-o: var(--state-press); }
+:is(.m3-dp-day, .m3-dp-year, .m3-dp-menubtn)[data-state="focus"] { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.library-page .m3-dp-menuitem:focus-visible { outline-offset: -3px; }
+:is(.m3-dp-day, .m3-dp-year, .m3-dp-menubtn, .m3-dp-iconbtn):is(:disabled, [data-disabled]) {
+  --dp-day-fg: var(--text-disabled);
+  --dp-day-outline: transparent;
+  --dp-layer-o: 0 !important;
+  color: var(--text-disabled);
+  cursor: default;
+}
+:is(.m3-dp-day, .m3-dp-year):is(:disabled, [data-disabled]):is([aria-selected="true"], [data-selected]) { --dp-day-bg: var(--text-disabled-container); }
+html[data-style] .preview-root .m3-dp.m3-dp :is(button, input):disabled { opacity: 1; }   /* 공통 비활성 규칙(.38)과 겹치지 않게 */
+
+/* 모달 대화상자(라이브) — 배경 막(scrim 32%) 위 */
+.m3-dp-dialog, .m3-tp-dialog { position: fixed; inset: 0; width: fit-content; height: fit-content; margin: auto; padding: 0; border: 0; background: transparent; overflow: visible; max-width: none; max-height: none; }
+.m3-dp-dialog::backdrop, .m3-tp-dialog::backdrop { background: color-mix(in srgb, var(--scrim, #000) 32%, transparent);   /* M3 scrim 32% — 토큰 색 */ }
+.m3-dp-docked-wrap { position: relative; display: inline-flex; flex-direction: column; gap: 4px; width: 360px; max-width: 100%; }
+
+.m3-dp-docked-wrap > .m3-dp { position: absolute; top: 60px; left: 0; z-index: 20; }
+
+/* ════════════════════════════════════════
+   Time pickers — M3 (명세 4.2.2)
+   ────────────────────────────────────────
+   변형   data-variant = dial | input, 배치 data-layout = vertical(기본) | horizontal, 24시간 data-24h
+   수치   M3 Time pickers Specs 토큰, MDC-Android timepicker tokens.xml, Compose TimePickerTokens · TimeInputTokens · TimePicker.kt(2026-09-27 확인)
+     컨테이너 surface-container-high · 모서리 xl(28) · 그림자 3 · 여백 24 · 제목 label-medium
+     시·분 선택 96×80(24시간 세로 114) · display-large · 모서리 sm · 선택 primary-container
+     오전·오후 세로 52×80 / 가로 216×38 · 테두리 1 outline · title-medium · 선택 tertiary-container
+     다이얼 256 · surface-container-highest · 숫자 body-large · 손잡이 48 · 선 2 · 중심 8 · 고리 반지름 101(안쪽 69)
+     입력 칸 96×72 · display-medium · 포커스 primary-container + 2 primary 테두리 · 아래 보조 글 body-small
+   ════════════════════════════════════════ */
+
+.m3-tp {
+  --tp-fg: var(--text-on-container, var(--text));
+  --tp-fg-variant: var(--on-surface-variant);
+  --tp-selector-w: 96px;
+  --tp-selector-h: 80px;
+  display: inline-flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex: none;
+  padding: 24px 24px 20px;
+  border-radius: var(--md-shape-xl);
+  background: var(--surface-container-high, var(--surface));
+  color: var(--tp-fg);
+  box-shadow: var(--md-elevation-3);
+}
+.m3-tp[data-24h] { --tp-selector-w: 114px; }
+.m3-tp[data-variant="input"] { --tp-selector-h: 72px; }
+.m3-tp[data-24h][data-variant="input"] { --tp-selector-w: 96px; }
+.m3-tp-headline { margin-bottom: 20px; color: var(--tp-fg-variant); font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); }
+.m3-tp-main { display: flex; flex-direction: column; align-items: center; }
+.m3-tp[data-layout="horizontal"] .m3-tp-main { flex-direction: row; align-items: flex-start; gap: 52px; }
+.m3-tp-display { display: flex; align-items: flex-start; gap: 12px; }
+.m3-tp[data-layout="horizontal"] .m3-tp-display { flex-direction: column; gap: 12px; }
+.m3-tp-fields { display: flex; align-items: flex-start; }
+
+/* 시·분 선택(다이얼) · 입력 칸(입력) */
+.m3-tp-selector,
+.m3-tp-field-input {
+  --tp-sel-bg: var(--surface-container-highest, var(--surface));
+  --tp-sel-fg: var(--tp-fg);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--tp-selector-w);
+  height: var(--tp-selector-h);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--md-shape-sm);
+  background: var(--tp-sel-bg);
+  color: var(--tp-sel-fg);
+  font: var(--md-type-display-large);
+  letter-spacing: var(--md-type-display-large-tracking);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: pointer;
+}
+.m3-tp-selector::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: var(--tp-sel-fg); opacity: var(--tp-layer-o, 0); z-index: -1; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-tp-selector:is([aria-pressed="true"], [data-selected]) { --tp-sel-bg: var(--primary-container); --tp-sel-fg: var(--on-primary-container); }
+.m3-tp-sep { display: grid; place-items: center; width: 24px; height: var(--tp-selector-h); color: var(--tp-fg); font: var(--md-type-display-large); letter-spacing: var(--md-type-display-large-tracking); }
+
+.m3-tp-field { display: flex; flex-direction: column; }
+.m3-tp-field-input { font: var(--md-type-display-medium); letter-spacing: var(--md-type-display-medium-tracking); cursor: text; border: 2px solid transparent; outline: none; }
+.m3-tp-field-input:hover { --tp-sel-fg: var(--tp-fg); }
+.m3-tp-field-input:focus,
+.m3-tp-field[data-state="focus"] .m3-tp-field-input { --tp-sel-bg: var(--primary-container); --tp-sel-fg: var(--on-primary-container); border-color: var(--primary); }
+.m3-tp-field[data-error] .m3-tp-field-input { border-color: var(--error); }
+.m3-tp-field-support { padding-top: 7px; color: var(--tp-fg-variant); font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); }
+.m3-tp-field[data-error] .m3-tp-field-support { color: var(--error-on-bg); }
+.m3-tp-field::selection, .m3-tp-field-input::selection { background: color-mix(in srgb, var(--on-primary-container) 24%, transparent); }
+
+/* 오전·오후(period) — 세로 52×(80|72), 가로 216×38, 모서리 sm, 테두리 1 outline */
+.m3-tp-period {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 52px;
+  height: var(--tp-selector-h);
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--outline);
+  border-radius: var(--md-shape-sm);
+}
+.m3-tp[data-layout="horizontal"] .m3-tp-period { flex-direction: row; width: 216px; height: 38px; }
+.m3-tp-period-btn {
+  --tp-per-bg: transparent;
+  --tp-per-fg: var(--tp-fg-variant);
+  position: relative;
+  isolation: isolate;
+  flex: 1 1 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--tp-per-bg);
+  color: var(--tp-per-fg);
+  font: var(--md-type-title-medium);
+  letter-spacing: var(--md-type-title-medium-tracking);
+  cursor: pointer;
+}
+.m3-tp-period-btn + .m3-tp-period-btn { border-top: 1px solid var(--outline); }
+.m3-tp[data-layout="horizontal"] .m3-tp-period-btn + .m3-tp-period-btn { border-top: 0; border-left: 1px solid var(--outline); }
+.m3-tp-period-btn::after { content: ''; position: absolute; inset: 0; background: var(--tp-per-fg); opacity: var(--tp-layer-o, 0); z-index: -1; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-tp-period-btn:is([aria-checked="true"], [data-selected]) { --tp-per-bg: var(--tertiary-container); --tp-per-fg: var(--on-tertiary-container); }
+.library-page .m3-tp-period-btn:focus-visible { outline-offset: -3px; }
+
+/* 다이얼 — 256 원, 숫자 버튼 48(바깥 반지름 101 · 안쪽 69), 손잡이 48, 선 2, 중심 8 */
+.m3-tp-dial {
+  --tp-dial: 256px;
+  position: relative;
+  width: var(--tp-dial);
+  height: var(--tp-dial);
+  flex: none;
+  margin-top: 36px;
+  border-radius: 50%;
+  background: var(--surface-container-highest, var(--surface));
+  touch-action: none;
+  user-select: none;
+}
+.m3-tp[data-layout="horizontal"] .m3-tp-dial { margin-top: 0; }
+.m3-tp-hand { position: absolute; left: 50%; top: 50%; width: 2px; height: var(--tp-hand-len, 101px); margin-left: -1px; background: var(--primary); transform-origin: 50% 0; transform: rotate(calc(var(--tp-angle, 0deg) + 180deg)); pointer-events: none; }
+.m3-tp-handle { position: absolute; left: calc(50% + var(--tp-hx, 0px) - 24px); top: calc(50% + var(--tp-hy, -101px) - 24px); width: 48px; height: 48px; border-radius: 50%; background: var(--primary); pointer-events: none; }
+.m3-tp-center { position: absolute; left: calc(50% - 4px); top: calc(50% - 4px); width: 8px; height: 8px; border-radius: 50%; background: var(--primary); pointer-events: none; }
+.m3-tp-num {
+  position: absolute;
+  left: calc(50% + var(--x) - 24px);
+  top: calc(50% + var(--y) - 24px);
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tp-fg);
+  font: var(--md-type-body-large);
+  letter-spacing: var(--md-type-body-large-tracking);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.m3-tp-num:is([aria-checked="true"], [data-selected]) { color: var(--on-primary); }
+.m3-tp-num[hidden] { display: none !important; }
+
+.m3-tp-actions { display: flex; align-items: center; gap: 8px; margin-top: 24px; }
+.m3-tp-actions .m3-dp-iconbtn { --dp-fg-variant: var(--tp-fg-variant); margin-inline-start: -12px; margin-inline-end: auto; }
+.m3-tp .m3-dp-iconbtn svg.icon-symbol,
+html[data-style] .preview-root .m3-tp svg.icon-symbol { width: 24px; height: 24px; fill: currentColor; stroke: none; }
+
+/* 상태 */
+:is(.m3-tp-selector, .m3-tp-period-btn):is(:hover, [data-state="hover"]) { --tp-layer-o: var(--state-hover); }
+:is(.m3-tp-selector, .m3-tp-period-btn):is(:focus-visible, [data-state="focus"]) { --tp-layer-o: var(--state-focus); }
+:is(.m3-tp-selector, .m3-tp-period-btn):is(:active, [data-state="pressed"]) { --tp-layer-o: var(--state-press); }
+.m3-tp-selector[data-state="focus"] { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-tp-period-btn[data-state="focus"] { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: calc(-1 * var(--md-focus-ring-width)); }
+.m3-tp-field[data-state="hover"] .m3-tp-field-input { background: color-mix(in srgb, var(--tp-fg) var(--state-hover), var(--surface-container-highest, var(--surface))); }
+.library-page .m3-tp-field-input:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-tp-field[data-state="focus"] .m3-tp-field-input { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+html[data-style] .preview-root .m3-tp.m3-tp :is(button, input):disabled { opacity: 1; }
+
+/* 갤러리 견본 · 라이브 */
+.m3-picker-cell-surface {
+  --dp-cell: 48px; --dp-circle: 40px;
+  --dp-fg: var(--text-on-container, var(--text)); --dp-fg-variant: var(--on-surface-variant);
+  --dp-primary-text: var(--primary-on-bg, var(--primary));
+  --tp-fg: var(--text-on-container, var(--text)); --tp-fg-variant: var(--on-surface-variant);
+  --tp-selector-w: 96px; --tp-selector-h: 80px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-width: 56px; min-height: 48px; padding: 4px 8px; box-sizing: border-box;
+  border-radius: var(--md-shape-xs);
+  background: var(--surface-container-high, var(--surface)); color: var(--dp-fg);
+}
+.m3-picker-cell-surface .m3-tp-field { --tp-selector-h: 72px; }
+span.m3-tp-period-btn { display: grid; place-items: center; }
+.btn-spec-block > .btn-spec-row.m3-picker-row { align-items: flex-start; padding-block: 8px 16px; }
+.m3-picker-live { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; width: 100%; min-height: 520px; }
+.m3-picker-live-col { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+/* 폰 폭: 창(Docked · Modal 360, Time 328)이 견본 칸(약 358)보다 넓다 — 항목 밖으로 넘치지 않게 Live 안에서 가로로 넘긴다.
+   넘김 상자가 창 그림자(level 3, 아래로 최대 15)를 자르지 않게 둘레 16 여유 */
+@media (max-width: 600px) {
+  .m3-picker-live { flex-wrap: nowrap; flex-direction: column; overflow-x: auto; box-sizing: border-box; width: calc(100% + 32px); max-width: none; padding: 16px; margin: -16px; }
+}
+.m3-picker-result { color: var(--on-surface-variant); font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); }
+
+@media (prefers-reduced-motion: reduce) {
+  .m3-dp *, .m3-dp *::after, .m3-tp *, .m3-tp *::after { transition: none !important; }
+}
+@media (forced-colors: active) {
+  .m3-dp, .m3-tp { border: 1px solid CanvasText; }
+  .m3-dp-day:is([aria-selected="true"], [data-selected]), .m3-dp-year:is([aria-selected="true"], [data-selected]), .m3-tp-selector[aria-pressed="true"], .m3-tp-period-btn[aria-checked="true"] { outline: 2px solid Highlight; }
+  .m3-tp-handle, .m3-tp-hand, .m3-tp-center { background: Highlight; }
+}
+
+/* ════════════════════════════════════════
+   Chips — M3 (명세 4.6.2)
+   ────────────────────────────────────────
+   유형   data-type = assist | filter | input | suggestion, 스타일 flat(기본) · elevated([data-style-elevated] 조상)
+   수치   M3 Chips Specs, MDC-Android chip tokens.xml · styles.xml · color/m3_*chip*.xml, Compose *ChipTokens · Chip.kt(2026-09-27 확인)
+     높이 32 · 모서리 8 · 아이콘 18 · 아바타 24(원) · 글자 label-large · 요소 간격 8
+     좌우 여백 16, 아이콘 쪽 8, 아바타 쪽 4 · 테두리 1(flat) · 터치 타깃 48
+     테두리 assist · suggestion outline(M3 사이트 · MDC) / filter · input outline-variant(M3 사이트 · Compose)
+     글자 assist on-surface · 나머지 on-surface-variant · 선택 on-secondary-container(채움 secondary-container)
+     앞 아이콘 primary(input 비선택은 on-surface-variant) · 뒤 아이콘 on-surface-variant
+     높이(그림자) elevated 1 → hover 2 · dragged 4, flat 선택 hover 1 · 비활성 on-surface 38%(테두리 · 채움 12%)
+   ════════════════════════════════════════ */
+
+.m3-chip {
+  --chip-bw: 1px;
+  --chip-outline: var(--outline-variant);
+  --chip-bg: transparent;
+  --chip-fg: var(--on-surface-variant);
+  --chip-lead: var(--primary);
+  --chip-trail: var(--on-surface-variant);
+  --chip-shadow: none;
+  --chip-shadow-hover: none;
+  --chip-layer: var(--chip-fg);
+  --chip-layer-o: 0;
+  --chip-pad-s: 16px;
+  --chip-pad-e: 16px;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 32px;
+  margin: 0;
+  padding: 0 calc(var(--chip-pad-e) - var(--chip-bw)) 0 calc(var(--chip-pad-s) - var(--chip-bw));
+  border: var(--chip-bw) solid var(--chip-outline);
+  border-radius: var(--md-shape-sm);
+  background: var(--chip-bg);
+  color: var(--chip-fg);
+  box-shadow: var(--chip-shadow);
+  font: var(--md-type-label-large);          /* label-large */
+  letter-spacing: var(--md-type-label-large-tracking);
+  white-space: nowrap;
+  vertical-align: middle;
+  flex: none;
+  transition: box-shadow var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects), background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-chip[data-lead] { --chip-pad-s: 8px; }
+.m3-chip[data-trail] { --chip-pad-e: 8px; }
+.m3-chip[data-avatar] { --chip-pad-s: 4px; }
+button.m3-chip { cursor: pointer; }
+.m3-chip::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 48px; transform: translateY(-50%); }   /* 터치 타깃 48 */
+.m3-chip::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--chip-bw) * -1);
+  border-radius: inherit;
+  background: var(--chip-layer);
+  opacity: var(--chip-layer-o);
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-chip-label { color: var(--chip-fg); }
+.m3-chip svg.icon-symbol, html[data-style] .preview-root .m3-chip svg.icon-symbol { width: 18px; height: 18px; flex: none; fill: currentColor; stroke: none; }
+.m3-chip .m3-chip-lead { color: var(--chip-lead); }
+.m3-chip .m3-chip-trail { color: var(--chip-trail); }
+.m3-chip-avatar {
+  display: grid; place-items: center; width: 24px; height: 24px; flex: none; border-radius: var(--md-shape-md);
+  background: var(--primary-container); color: var(--on-primary-container); font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking);
+}
+.m3-chip-check { display: none; }
+
+/* 유형별 기본 */
+.m3-chip[data-type="assist"] { --chip-outline: var(--outline); --chip-fg: var(--text); --chip-layer: var(--text); }
+.m3-chip[data-type="suggestion"] { --chip-outline: var(--outline); }
+.m3-chip[data-type="input"] { --chip-lead: var(--on-surface-variant); }
+
+/* Elevated — 테두리 없음, surface-container-low + 그림자 1(hover 2) */
+[data-chip-style="elevated"] .m3-chip[data-elevatable] {
+  --chip-bw: 0px;
+  --chip-bg: var(--surface-container-low, var(--surface));
+  --chip-shadow: var(--md-elevation-1);
+  --chip-shadow-hover: var(--md-elevation-2);
+}
+[data-chip-style="elevated"] .m3-chip[data-elevatable][data-type="assist"] { --chip-fg: var(--text-on-container, var(--text)); --chip-layer: var(--chip-fg); }
+[data-chip-style="elevated"] .m3-chip[data-elevatable]:is([data-selected="true"], [aria-pressed="true"], [aria-expanded="true"]) { --chip-bg: var(--secondary-container); }
+
+/* 선택 — secondary-container, 테두리 없음, filter는 체크 아이콘이 앞에 나온다 */
+.m3-chip:is([data-selected="true"], [aria-pressed="true"]) {
+  --chip-bw: 0px;
+  --chip-bg: var(--secondary-container);
+  --chip-fg: var(--on-secondary-container);
+  --chip-trail: var(--on-secondary-container);
+  --chip-layer: var(--on-secondary-container);
+  --chip-shadow-hover: var(--md-elevation-1);   /* flat 선택 hover 1 */
+}
+.m3-chip[data-type="filter"]:is([data-selected="true"], [aria-pressed="true"]) { --chip-lead: var(--on-secondary-container); }
+.m3-chip[data-type="input"]:is([data-selected="true"], [aria-pressed="true"]) { --chip-lead: var(--primary); }
+.m3-chip[data-type="filter"]:is([data-selected="true"], [aria-pressed="true"]) .m3-chip-check { display: block; }
+button.m3-chip[data-type="filter"]:not([aria-pressed="true"], [aria-expanded="true"]) { --chip-pad-s: 16px; }   /* 체크 아이콘이 숨으면 여백 16 */
+button.m3-chip[data-type="filter"][aria-expanded="true"] .m3-chip-check { display: block; }
+button.m3-chip[data-type="filter"][aria-expanded="true"] { --chip-bw: 0px; --chip-bg: var(--secondary-container); --chip-fg: var(--on-secondary-container); --chip-lead: var(--on-secondary-container); --chip-layer: var(--on-secondary-container); }
+
+/* 상태 */
+:is(button.m3-chip:not(:disabled):hover, .m3-chip[data-state="hover"]) { --chip-layer-o: var(--state-hover); box-shadow: var(--chip-shadow-hover, var(--chip-shadow)); }
+:is(button.m3-chip:focus-visible, .m3-chip[data-state="focus"]) { --chip-layer-o: var(--state-focus); }
+.library-page button.m3-chip:focus-visible,
+:is(button.m3-chip:focus-visible, .m3-chip[data-state="focus"]) { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-chip[data-type="assist"]:is(:focus-visible, [data-state="focus"]) { --chip-outline: var(--text); }
+.m3-chip:not([data-type="assist"]):is(:focus-visible, [data-state="focus"]) { --chip-outline: var(--on-surface-variant); }
+:is(button.m3-chip:not(:disabled):active, .m3-chip[data-state="pressed"]) { --chip-layer-o: var(--state-press); box-shadow: var(--chip-shadow); }
+.m3-chip[data-state="dragged"] { --chip-layer-o: 16%; box-shadow: var(--md-elevation-4); }
+
+/* 비활성 */
+.m3-chip:is(:disabled, [data-disabled="true"]) {
+  --chip-outline: var(--text-disabled-container);
+  --chip-fg: var(--text-disabled);
+  --chip-lead: var(--chip-fg);
+  --chip-trail: var(--chip-fg);
+  --chip-layer-o: 0 !important;
+  --chip-shadow: none;
+  --chip-shadow-hover: none;
+  cursor: default;
+}
+.m3-chip:is(:disabled, [data-disabled="true"]):is([data-selected="true"], [aria-pressed="true"]),
+[data-chip-style="elevated"] .m3-chip[data-elevatable]:is(:disabled, [data-disabled="true"]) {
+  --chip-bg: var(--text-disabled-container);
+  --chip-fg: var(--text-disabled);
+  --chip-lead: var(--chip-fg);
+  --chip-layer: var(--chip-fg);
+  --chip-shadow: none;
+  --chip-shadow-hover: none;
+}
+.m3-chip:is(:disabled, [data-disabled="true"]) .m3-chip-avatar { opacity: var(--md-state-disabled-content); }
+html[data-style] .preview-root button.m3-chip.m3-chip:disabled { opacity: 1; }   /* 공통 비활성 규칙(.38)과 겹치지 않게 */
+
+/* 견본 · 라이브 */
+.m3-chip-table td { padding-inline: 8px; }
+.m3-chip-live { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.m3-chip-set { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 0; }
+.m3-chip-set--reflow { flex-wrap: nowrap; overflow: hidden; max-width: min(100%, 412px); mask-image: linear-gradient(to right, #000 85%, transparent); }
+.m3-chip-set--reflow[data-expanded="true"] { flex-wrap: wrap; overflow: visible; mask-image: none; }
+.m3-chip[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) { .m3-chip, .m3-chip::after { transition: none; } }
+@media (forced-colors: active) {
+  .m3-chip { border: 1px solid CanvasText; }
+  .m3-chip:is([data-selected="true"], [aria-pressed="true"]) { border: 2px solid Highlight; }
+}
+
+/* Loading indicator — M3 Expressive (명세 4.3.1)
+   ────────────────────────────────────────
+   구성   data-containment = default(컨테이너 없음) | contained(원형 컨테이너)
+   수치   M3 Loading indicator Specs 토큰, MDC-Android loadingindicator tokens.xml · dimens.xml · styles.xml,
+          Compose LoadingIndicatorTokens · LoadingIndicator.kt(2026-10-01 확인)
+     크기 48(컨테이너) · 모양 38 — 비율 유지로 24 ~ 240까지 키운다
+     색 기본 primary · Contained primary-container + on-primary-container
+     움직임 7개 모양(SoftBurst → Cookie9 → Pentagon → Pill → Sunny → Cookie4 → Oval)을 650ms마다 스프링(감쇠 0.6 · 강성 200)으로
+            모핑, 4666ms 한 바퀴 회전 + 모핑마다 90°. 확정은 원 → SoftBurst, 진행만큼 반시계 180°
+   ════════════════════════════════════════ */
+.m3-loading {
+  --loading-size: 48px;
+  --loading-color: var(--primary);
+  --loading-container: transparent;
+  display: inline-block;
+  flex: none;
+  width: var(--loading-size);
+  height: var(--loading-size);
+  vertical-align: middle;
+}
+.m3-loading svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.m3-loading-container { fill: var(--loading-container); }
+.m3-loading-shape { fill: var(--loading-color); }
+html[data-style] .preview-root .m3-loading svg { fill: none; stroke: none; }
+.m3-loading[data-containment="contained"] { --loading-color: var(--on-primary-container); --loading-container: var(--primary-container); }
+.m3-loading[data-in-button] { --loading-color: currentColor; --loading-container: transparent; }   /* 버튼 안: 라벨 색, 컨테이너 없음 */
+.m3-loading[hidden] { display: none !important; }
+
+/* 견본 */
+.m3-loading-button, .m3-progress-button { cursor: progress; }
+.m3-loading-content {
+  position: relative; display: grid; place-items: center; width: 240px; height: 160px; border-radius: var(--md-shape-md);
+  background: var(--surface-container-highest); color: var(--on-surface-variant); overflow: hidden;
+}
+.m3-loading-content > .m3-loading { position: relative; }
+.m3-loading-content svg.m3-loading-content-art,
+html[data-style] .preview-root .m3-loading-content svg.m3-loading-content-art { position: absolute; width: 96px; height: 96px; fill: currentColor; stroke: none; opacity: var(--md-state-disabled-content); }
+.m3-loading-live { display: flex; flex-direction: column; width: min(100%, 320px); border-radius: var(--md-shape-md); background: var(--surface); color: var(--text-on-container); }
+.m3-loading-live-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 4px 16px; }
+.m3-loading-live.m3-loading-live .m3-loading-live-title { font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); color: var(--text-on-container); }
+.m3-loading-live-body { position: relative; display: grid; min-height: 152px; padding: 0 16px 8px; }
+.m3-loading-live-list { margin: 0; padding: 0; list-style: none; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-loading-live-list li { display: flex; justify-content: space-between; padding: 12px 0; font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text-on-container); }
+.m3-loading-live-list li + li { border-top: 1px solid var(--outline-variant); }
+.m3-loading-live-list li > span:last-child { font: var(--md-type-label-medium); letter-spacing: var(--md-type-label-medium-tracking); color: var(--on-surface-variant); align-self: center; }
+.m3-loading-live-body[aria-busy="true"] .m3-loading-live-list { opacity: 0; }   /* 새 내용이 올 자리를 비우고 가운데 표시(M3 Placement) */
+.m3-loading-live-body > .m3-loading { position: absolute; inset: 0; margin: auto; }
+.m3-loading-det { display: flex; align-items: center; gap: 16px; }
+
+/* Progress indicators — M3 Expressive (명세 4.3.2)
+   ────────────────────────────────────────
+   유형   data-type = linear | circular, data-value(0..1)가 있으면 확정, 없으면 불확정
+   구성   data-shape = flat | wavy · data-thickness = default(4) | thick(8)
+   수치   M3 Progress indicators Specs 토큰(Common · Linear · Circular), MDC-Android progressindicator tokens.xml · styles.xml,
+          Compose ProgressIndicatorTokens · Linear/CircularProgressIndicatorTokens · ProgressIndicator.kt · WavyProgressIndicator.kt
+     선형 두께 4 · 활성–트랙 간격 4 · 끝 점 4 · 물결 높이 10(진폭 3 · 파장 40, 불확정 20) · 화면 가장자리 안쪽 4
+     원형 지름 40(물결 48 · 진폭 1.6 · 파장 15) · 두께 4 · 간격 4, Thick 8(선형 높이 8 · 물결 14, 원형 52)
+     색 활성 · 끝 점 primary, 트랙 secondary-container. 버튼 안은 라벨 색, 트랙 없음
+   그리기는 patterns.js(SVG) — 값 · 움직임은 progress.js
+   ════════════════════════════════════════ */
+.m3-progress {
+  --progress-active: var(--primary);
+  --progress-track: var(--secondary-container);
+  --progress-width: 240px;
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+.m3-progress[data-type="linear"] { width: var(--progress-width); max-width: 100%; }
+.m3-progress svg { display: block; overflow: visible; }
+.m3-progress .m3-progress-track { fill: none; stroke: var(--progress-track); stroke-linecap: round; }
+.m3-progress .m3-progress-active { fill: none; stroke: var(--progress-active); stroke-linecap: round; stroke-linejoin: round; }
+.m3-progress .m3-progress-stop { fill: var(--progress-active); stroke: none; }
+html[data-style] .preview-root .m3-progress svg { fill: none; stroke: none; }
+html[data-style] .preview-root .m3-progress .m3-progress-stop { fill: var(--progress-active); }
+.m3-progress[data-in-button] { --progress-active: currentColor; --progress-track: transparent; }
+[dir="rtl"] .m3-progress[data-type="linear"] svg { transform: scaleX(-1); }   /* 선형은 RTL에서 좌우 반전, 원형은 그대로(M3 Responsive) */
+
+.m3-progress-set { display: flex; flex-wrap: nowrap; align-items: center; gap: 24px; }
+.m3-progress-card { position: relative; display: flex; flex-direction: column; gap: 4px; width: 240px; padding: 20px 16px 16px; border-radius: var(--md-shape-md); background: var(--surface); }
+.m3-progress-card > .m3-progress[data-placement="edge"] { position: absolute; top: 0; left: 4px; right: 4px; width: auto; }   /* 가장자리에 붙이고 양 끝 4 안쪽 */
+.m3-progress-card.m3-progress-card .m3-progress-card-title { font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); color: var(--text-on-container); }
+.m3-progress-card.m3-progress-card .m3-progress-card-sub { font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-surface-variant); }
+.m3-progress-live { display: flex; flex-direction: column; gap: 16px; }
+.m3-progress-live-bars { display: flex; align-items: center; gap: 24px; }
+.m3-progress-live.m3-progress-live .m3-progress-live-value { min-width: 48px; font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--text); font-variant-numeric: tabular-nums; }
+.m3-progress-live-actions { display: flex; gap: 8px; }
+.library-page .pl-item .btn-spec-row.m3-progress-row { align-items: center; }
+
+/* Menus — M3 Expressive 세로 메뉴(명세 4.6.3)
+   ────────────────────────────────────────
+   옛 .menu-dropdown(Split button · Navbar 견본)은 그대로 두고 갤러리 견본은 .m3-menu로 새로 만든다.
+   구성   data-color = standard(surface 기반) | vibrant(tertiary 기반), data-layout = standard | grouped(묶음 사이 간격) | divider
+          data-density = 0 | -1 | -2 | -3(웹 전용, 위아래 여백을 2씩 줄인다)
+   수치   M3 Menus Specs 토큰(Menus - Common · Color - Standard · Color - Vibrant), MDC-Android menu tokens.xml(baseline),
+          Compose MenuTokens · StandardMenuTokens · VibrantMenuTokens · SegmentedMenuTokens · Menu.kt · MenuDefaults.kt(2026-10-01 확인)
+     항목 높이 44 · 위아래 8 · 시작 16 · 끝 16 · 요소 간격 12 · 아이콘 20 · 폭 112 ~ 280
+     묶음 안쪽 여백 2 · 묶음 사이 간격 2 · 그림자 2
+     모서리 메뉴(묶음 하나) lg, 묶음 처음 위 lg · 아래 sm / 가운데 sm / 끝 위 sm · 아래 lg, 비활성 메뉴 sm
+            항목 xs, 묶음 처음 항목 위 md · 끝 항목 아래 md, 선택 md
+     글자 라벨 label-large · 보조 body-small · 뒤 글자 label-large · 묶음 이름 label-large
+     색(Standard) 컨테이너 surface-container-low, 라벨 on-surface, 보조 · 아이콘 · 뒤 글자 on-surface-variant,
+                  선택 tertiary-container + on-tertiary-container
+       (Vibrant)  컨테이너 tertiary-container, 내용 on-tertiary-container, hover · focus · pressed 아이콘 tertiary, 선택 tertiary + on-tertiary
+     상태 레이어 내용 색 8 · 10 · 10, active(하위 메뉴를 연 항목) 8 · 포커스 링 secondary 3, 안쪽(-3)
+     비활성 내용 38%, 포커스는 받는다(M3 Interactability)
+   ════════════════════════════════════════ */
+.m3-menu {
+  --menu-container: var(--surface-container-low);
+  --menu-label: var(--text-on-container);
+  --menu-variant: var(--on-surface-variant);
+  --menu-icon-active: var(--on-surface-variant);   /* hover · focus · pressed 아이콘 */
+  --menu-layer: var(--text-on-container);
+  --menu-selected: var(--tertiary-container);
+  --menu-on-selected: var(--on-tertiary-container);
+  --menu-pad-y: calc(8px + var(--menu-density, 0) * 2px);
+  --menu-item-h: calc(44px + var(--menu-density, 0) * 4px);
+  --menu-group-pad: 2px;
+  --menu-gap: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-sizing: border-box;
+  min-width: 112px;
+  max-width: 280px;
+  width: max-content;
+  text-align: start;
+}
+.m3-menu[data-density="-1"] { --menu-density: -1; }
+.m3-menu[data-density="-2"] { --menu-density: -2; }
+.m3-menu[data-density="-3"] { --menu-density: -3; }
+.m3-menu[data-color="vibrant"] {
+  --menu-container: var(--tertiary-container);
+  --menu-label: var(--on-tertiary-container);
+  --menu-variant: var(--on-tertiary-container);
+  --menu-icon-active: var(--tertiary);
+  --menu-layer: var(--on-tertiary-container);
+  --menu-selected: var(--tertiary);
+  --menu-on-selected: var(--on-tertiary);
+}
+.m3-menu[data-layout="grouped"] { gap: var(--menu-gap); }
+.m3-menu[hidden] { display: none !important; }
+
+/* 묶음 — 묶음이 하나면 메뉴 컨테이너와 같다 */
+.m3-menu-group {
+  --menu-group-r-top: var(--md-shape-sm);
+  --menu-group-r-bottom: var(--md-shape-sm);
+  display: flex;
+  flex-direction: column;
+  padding: var(--menu-group-pad);
+  border-start-start-radius: var(--menu-group-r-top);
+  border-start-end-radius: var(--menu-group-r-top);
+  border-end-start-radius: var(--menu-group-r-bottom);
+  border-end-end-radius: var(--menu-group-r-bottom);
+  background: var(--menu-container);
+  box-shadow: var(--md-elevation-2);
+  transition: border-radius var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial);
+}
+.m3-menu-group:first-child { --menu-group-r-top: var(--md-shape-lg); }
+.m3-menu-group:last-child { --menu-group-r-bottom: var(--md-shape-lg); }
+/* 하위 메뉴로 포커스가 옮겨 간 메뉴는 모서리가 줄어든다(비활성 sm — M3 Focus · shape morphing) */
+.m3-menu[data-inactive] .m3-menu-group { --menu-group-r-top: var(--md-shape-sm); --menu-group-r-bottom: var(--md-shape-sm); }
+.m3-menu.m3-menu .m3-menu-section {
+  display: flex; align-items: center; min-height: 32px; padding: 0 4px 0 12px;
+  font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--menu-variant);
+}
+.m3-menu-divider { height: 1px; margin: 2px 12px; background: var(--outline-variant); flex: none; }   /* Compose HorizontalDividerPadding 12 · 2 */
+
+/* 항목 */
+.m3-menu-item {
+  --menu-r-top: var(--md-shape-xs);
+  --menu-r-bottom: var(--md-shape-xs);
+  --menu-item-bg: transparent;
+  --menu-fg: var(--menu-label);
+  --menu-fg-variant: var(--menu-variant);
+  --menu-fg-icon: var(--menu-variant);
+  --menu-item-layer: var(--menu-layer);
+  --menu-layer-o: 0;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: var(--menu-item-h);
+  padding: var(--menu-pad-y) 16px;
+  border-start-start-radius: var(--menu-r-top);
+  border-start-end-radius: var(--menu-r-top);
+  border-end-start-radius: var(--menu-r-bottom);
+  border-end-end-radius: var(--menu-r-bottom);
+  background: var(--menu-item-bg);
+  color: var(--menu-fg);
+  cursor: pointer;
+  user-select: none;
+  transition: border-radius var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-menu-item::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--menu-item-layer); opacity: var(--menu-layer-o); pointer-events: none; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-menu-group > .m3-menu-item:first-of-type, .m3-menu-group > .m3-menu-section + .m3-menu-item { --menu-r-top: var(--md-shape-md); }
+.m3-menu-group > .m3-menu-item:last-child { --menu-r-bottom: var(--md-shape-md); }
+.m3-menu-lead, .m3-menu-trail { display: inline-flex; align-items: center; gap: 8px; flex: none; color: var(--menu-fg-icon); }
+.m3-menu-trail { margin-inline-start: auto; }
+.m3-menu-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.m3-menu-item.m3-menu-item .m3-menu-label { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--menu-fg); }
+.m3-menu-item.m3-menu-item .m3-menu-supporting { font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); color: var(--menu-fg-variant); }
+.m3-menu-item.m3-menu-item .m3-menu-trailing-text { font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--menu-fg-variant); white-space: nowrap; }
+.m3-menu svg.icon-symbol,
+html[data-style] .preview-root .m3-menu svg.icon-symbol { width: 20px; height: 20px; fill: currentColor; stroke: none; }
+/* 선택 표시 — 선택되면 체크가 앞 아이콘 자리를 대신한다. 아이콘 없는 비선택 항목은 체크 자리를 비워 두어 글자 줄을 맞춘다(Compose ghost leading icon) */
+.m3-menu-check { display: block; }
+.m3-menu-item[aria-checked="false"] .m3-menu-check { visibility: hidden; }
+.m3-menu-item[aria-checked="false"] .m3-menu-lead:has(.m3-menu-icon) .m3-menu-check,
+.m3-menu-item[aria-checked="true"] .m3-menu-lead .m3-menu-icon { display: none; }
+[dir="rtl"] .m3-menu-item[aria-haspopup] .m3-menu-trail svg.icon-symbol:last-child { transform: scaleX(-1); }   /* 하위 메뉴 화살표는 RTL에서 반전 */
+
+/* 상태 */
+.m3-menu-item:is(:hover, [data-state="hover"]) { --menu-layer-o: var(--state-hover); --menu-fg-icon: var(--menu-icon-active); }
+.m3-menu-item:is(:focus-visible, [data-state="focus"]) { --menu-layer-o: var(--state-focus); --menu-fg-icon: var(--menu-icon-active); }
+.library-page .m3-menu .m3-menu-item:is(:focus-visible, [data-state="focus"]) { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: calc(var(--md-focus-ring-width) * -1); }
+.m3-menu-item:is(:active, [data-state="pressed"]) { --menu-layer-o: var(--state-press); --menu-fg-icon: var(--menu-icon-active); }
+.m3-menu-item:is([data-state="active"], [aria-expanded="true"]) { --menu-layer-o: var(--state-hover); }   /* active 8% */
+
+/* 선택(단일 · 다중 선택 메뉴) — 색 · 모양 · 체크 표시 세 가지 단서(M3 Accessibility) */
+.m3-menu-item:is([aria-checked="true"], [aria-selected="true"]) {
+  --menu-item-bg: var(--menu-selected);
+  --menu-fg: var(--menu-on-selected);
+  --menu-fg-variant: var(--menu-on-selected);
+  --menu-fg-icon: var(--menu-on-selected);
+  --menu-icon-active: var(--menu-on-selected);
+  --menu-item-layer: var(--menu-on-selected);
+  --menu-r-top: var(--md-shape-md);
+  --menu-r-bottom: var(--md-shape-md);
+}
+.m3-menu-item:is([aria-checked="true"], [aria-selected="true"]):is(:hover, :focus-visible, :active, [data-state]) { --menu-fg-icon: var(--menu-on-selected); }
+
+/* 비활성 — 내용 38%, 상태 레이어 없음, 포커스는 받는다 */
+.m3-menu-item[aria-disabled="true"] {
+  --menu-fg: color-mix(in srgb, var(--menu-label) var(--md-state-disabled-content), transparent);
+  --menu-fg-variant: var(--menu-fg);
+  --menu-fg-icon: var(--menu-fg);
+  --menu-icon-active: var(--menu-fg);
+  --menu-layer-o: 0 !important;
+  cursor: default;
+}
+.m3-menu-item[aria-disabled="true"][aria-checked="true"] {
+  --menu-item-bg: color-mix(in srgb, var(--menu-selected) var(--md-state-disabled-content), transparent);
+  --menu-fg: color-mix(in srgb, var(--menu-on-selected) var(--md-state-disabled-content), transparent);
+}
+.m3-menu-item[aria-disabled="true"] .badge { opacity: var(--md-state-disabled-content); }
+.library-page .m3-menu .m3-menu-item[aria-disabled="true"]:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); }
+
+/* 떠 있는 메뉴(라이브) — 열림: 크기 0.8 → 1 · 투명 → 불투명(Compose FastSpatial · FastEffects 스프링) */
+.m3-menu[data-menu-popup] {
+  position: fixed;
+  z-index: 300;
+  transform-origin: var(--menu-origin, top left);
+  animation: m3-menu-in var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial) both;
+}
+.m3-menu[data-menu-popup][data-closing] { animation: m3-menu-out var(--md-motion-spring-expressive-fast-effects-duration) var(--md-easing-standard-accelerate) both; }
+@keyframes m3-menu-in { from { transform: scale(0.8); opacity: 0; } }
+@keyframes m3-menu-out { to { transform: scale(0.8); opacity: 0; } }
+
+/* 견본 */
+.m3-menu-stage { display: flex; align-items: flex-start; gap: 0; padding: 4px 0 12px; }
+.m3-menu-stage--pair { gap: 4px; }
+.m3-menu-stage--pair > .m3-menu:last-child { margin-top: 46px; }   /* 하위 메뉴는 부모 항목(두 번째 항목) 높이에 맞춘다 */
+.m3-menu-table td { min-width: 200px; }
+.m3-menu-table .m3-menu { width: 200px; }
+.m3-menu-anchor { position: relative; display: inline-flex; align-items: center; gap: 16px; }
+.m3-menu-anchor.m3-menu-anchor .m3-menu-result { font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-surface-variant); }
+.m3-menu-context {
+  display: grid; place-items: center; gap: 8px; width: 240px; height: 140px; border-radius: var(--md-shape-md);
+  background: var(--surface-container-highest); color: var(--on-surface-variant); cursor: context-menu;
+}
+.m3-menu-context.m3-menu-context .m3-menu-context-title { font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); color: var(--text-on-container); }
+.m3-menu-context svg.m3-menu-context-art,
+html[data-style] .preview-root .m3-menu-context svg.m3-menu-context-art { width: 48px; height: 48px; fill: currentColor; stroke: none; }
+.library-page .pl-item .btn-spec-row.m3-menu-row { align-items: flex-start; }
+
+@media (prefers-reduced-motion: reduce) {
+  .m3-menu[data-menu-popup], .m3-menu[data-menu-popup][data-closing] { animation: none; }
+  .m3-menu-item, .m3-menu-item::after, .m3-menu-group { transition: none; }
+}
+
+/* ════════════════════════════════════════
+   Sliders — M3 Expressive (명세 4.6.5)
+   출처 m3.material.io Sliders Specs(Measurements · Color), MDC-Android slider tokens.xml · dimens.xml, Compose SliderTokens · Slider.kt(2026-10-03 확인)
+   크기 XS · S · M · L · XL — 트랙 16 · 24 · 40 · 56 · 96, 손잡이 44 · 44 · 52 · 68 · 108 × 4, 트랙 바깥 모서리 8 · 8 · 12 · 16 · 28, 안쪽 아이콘 M · L 24 · XL 32
+   손잡이 양옆 간격 6 · 손잡이 쪽 트랙 모서리 2 · 멈춤 점 4(끝에서 6) · 값 표시 48×44 inverse-surface · label-large · 손잡이 위 12
+   색 활성 트랙 · 손잡이 primary, 비활성 트랙 secondary-container, 멈춤 점 on-primary(활성) · on-secondary-container(비활성)
+      포커스 · 누름: 손잡이 폭 2. 비활성: 활성 트랙 · 손잡이 on-surface 38%, 비활성 트랙 on-surface 12%
+   배치는 scripts/slider.js가 계산하고 patterns.js가 그린다(조각 · 점 · 손잡이 위치는 스크립트가 넣는 style)
+   ════════════════════════════════════════ */
+.m3-slider {
+  --sl-track: 16px; --sl-handle: 44px;
+  --sl-active: var(--primary); --sl-inactive: var(--secondary-container); --sl-handle-c: var(--primary);
+  --sl-stop-on: var(--on-primary); --sl-stop-off: var(--on-secondary-container);
+  position: relative; flex: none; box-sizing: border-box; width: 240px; height: max(48px, var(--sl-handle));
+  touch-action: none; user-select: none;
+}
+.m3-slider[data-orientation="vertical"] { width: max(48px, var(--sl-handle)); height: 200px; }
+.m3-slider-track { position: absolute; inset-inline: 0; top: 50%; height: var(--sl-track); transform: translateY(-50%); }
+.m3-slider[data-orientation="vertical"] .m3-slider-track { inset: 0 auto; left: 50%; width: var(--sl-track); height: auto; transform: translateX(-50%); }
+.m3-slider-seg { position: absolute; top: 0; height: 100%; background: var(--sl-inactive); }
+.m3-slider[data-orientation="vertical"] .m3-slider-seg { top: auto; left: 0; width: 100%; height: auto; }
+.m3-slider-seg[data-active] { background: var(--sl-active); }
+.m3-slider-stop { position: absolute; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: var(--md-shape-full); background: var(--sl-stop-off); }
+[dir="rtl"] .m3-slider-stop { margin: -2px -2px 0 0; }
+.m3-slider[data-orientation="vertical"] .m3-slider-stop { top: auto; left: 50%; margin: 0 0 -2px -2px; }
+.m3-slider-stop[data-active] { background: var(--sl-stop-on); }
+.m3-slider-icon { position: absolute; top: 50%; transform: translateY(-50%); fill: var(--sl-stop-off); }
+.m3-slider[data-orientation="vertical"] .m3-slider-icon { top: auto; left: 50%; transform: translateX(-50%); }
+.m3-slider-icon[data-active],
+html[data-style] .preview-root .m3-slider-icon[data-active] { fill: var(--sl-stop-on); stroke: none; }
+html[data-style] .preview-root .m3-slider-icon { fill: var(--sl-stop-off); stroke: none; }
+.m3-slider-handle {
+  position: absolute; top: 50%; box-sizing: border-box; height: var(--sl-handle); transform: translate(-50%, -50%);
+  border-radius: var(--md-shape-full); background: var(--sl-handle-c); outline: none;
+  transition: width var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial);
+}
+[dir="rtl"] .m3-slider:not([data-orientation="vertical"]) .m3-slider-handle { transform: translate(50%, -50%); }
+.m3-slider[data-orientation="vertical"] .m3-slider-handle { top: auto; left: 50%; width: var(--sl-handle); transform: translate(-50%, 50%); transition: height var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial); }
+.m3-slider-handle[role="slider"] { cursor: grab; }
+.m3-slider-handle[role="slider"]::before { content: ''; position: absolute; inset: 0 -22px; }   /* 누르는 칸 48 이상 */
+.m3-slider[data-orientation="vertical"] .m3-slider-handle[role="slider"]::before { inset: -22px 0; }
+.m3-slider-handle:is(:focus-visible, [data-state="focus"]) { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.library-page .m3-slider-handle:focus-visible { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-slider[data-dragging] .m3-slider-handle[data-dragging] { cursor: grabbing; }
+/* 값 표시 */
+.m3-slider-value {
+  position: absolute; bottom: calc(50% + var(--sl-handle) / 2 + 12px); display: grid; place-items: center; box-sizing: border-box;
+  min-width: 48px; height: 44px; padding: 0 12px; transform: translateX(-50%);
+  border-radius: var(--md-shape-full); background: var(--inverse-surface); color: var(--on-inverse-surface);
+  font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); white-space: nowrap; pointer-events: none;
+  animation: m3-slider-pop var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial) both;
+}
+[dir="rtl"] .m3-slider:not([data-orientation="vertical"]) .m3-slider-value { transform: translateX(50%); }
+.m3-slider[data-orientation="vertical"] .m3-slider-value { bottom: auto; inset-inline-end: calc(50% + var(--sl-handle) / 2 + 12px); transform: translateY(50%); }
+@keyframes m3-slider-pop { from { opacity: 0; scale: 0.6; } }
+/* 비활성 */
+.m3-slider[data-disabled] {
+  --sl-active: color-mix(in srgb, var(--text) 38%, transparent); --sl-inactive: color-mix(in srgb, var(--text) 12%, transparent);
+  --sl-handle-c: color-mix(in srgb, var(--text) 38%, transparent); --sl-stop-on: var(--on-inverse-surface); --sl-stop-off: var(--text);
+}
+/* 견본 · 데모 */
+.m3-slider-field { display: inline-flex; flex-direction: column; gap: 4px; padding-top: 64px; }   /* 위 64 — 값 표시 자리 */
+.m3-slider-field.m3-slider-field .m3-slider-label { font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-surface-variant); }
+.m3-slider-table td { min-width: 240px; padding-top: 64px; }
+.library-page .pl-item .btn-spec-row.m3-slider-row { align-items: flex-end; }
+@media (prefers-reduced-motion: reduce) { .m3-slider-handle, .m3-slider-value { transition: none; animation: none; } }
+@media (forced-colors: active) {
+  .m3-slider-seg { forced-color-adjust: none; background: GrayText; }
+  .m3-slider-seg[data-active], .m3-slider-handle { forced-color-adjust: none; background: Highlight; }
+}
+.m3-slider-field:has(> .m3-slider[data-orientation="vertical"]) { padding-top: 0; padding-inline-start: 72px; }   /* 세로는 값 표시가 시작 쪽 */
+
+/* ════════════════════════════════════════
+   Snackbar — M3 (명세 4.7.2)
+   출처 MDC-Android snackbar tokens.xml, Compose SnackbarTokens · Snackbar.kt · SnackbarHost.kt(2026-10-03 확인)
+   inverse-surface · 모서리 xs · 그림자 3 · 최대 폭 600 · 한 줄 48 · 두 줄 68 · 위아래 14 · 시작 16
+   글 body-medium on-inverse-surface · 동작 label-large inverse-primary(글자 버튼) · 닫기 아이콘 24 on-inverse-surface(칸 48)
+   버튼 쪽 끝 8 · 글-버튼 사이 8 · 긴 동작은 글 아래 줄 끝 정렬
+   나타남 · 사라짐: 크기 0.8 ↔ 1(FastSpatial) + 투명도(FastEffects). 시간 짧게 4초 · 길게 10초
+   ════════════════════════════════════════ */
+:is(.m3-snackbar, .m3-snackbar-action, .m3-snackbar-close)[hidden] { display: none !important; }
+.m3-snackbar {
+  box-sizing: border-box; display: flex; align-items: center; flex-wrap: wrap; column-gap: 8px;
+  width: max-content; max-width: min(600px, 100%); min-height: 48px; padding: 0 8px 0 16px;
+  border-radius: var(--md-shape-xs); background: var(--inverse-surface); color: var(--on-inverse-surface);
+  box-shadow: var(--md-elevation-3);
+}
+.m3-snackbar:not(:has(> :is(.m3-snackbar-action, .m3-snackbar-close):not([hidden]))) { padding-inline-end: 16px; }
+.m3-snackbar.m3-snackbar .m3-snackbar-text {
+  flex: 1 1 0; min-width: 0; margin: 0; padding: 14px 0;
+  font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-inverse-surface);
+}
+.m3-snackbar[data-lines="2"] { min-height: 68px; }
+.m3-snackbar[data-lines="2"] .m3-snackbar-text { padding-block: 14px; }
+.m3-snackbar-action, .m3-snackbar-close {
+  position: relative; isolation: isolate; flex: none; margin: 0; border: 0; background: transparent; cursor: pointer;
+}
+.m3-snackbar-action {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: 48px; height: 40px; padding: 0 12px; border-radius: var(--md-shape-full);
+  font: var(--md-type-label-large); letter-spacing: var(--md-type-label-large-tracking); color: var(--inverse-primary);
+}
+.m3-snackbar-close { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border-radius: var(--md-shape-full); color: var(--on-inverse-surface); }
+.m3-snackbar-close > svg.icon-symbol,
+html[data-style] .preview-root .m3-snackbar-close > svg.icon-symbol { width: 24px; height: 24px; fill: currentColor; stroke: none; }
+.m3-snackbar-action::after, .m3-snackbar-close::after { content: ''; position: absolute; z-index: -1; border-radius: inherit; background: currentColor; opacity: 0; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-snackbar-action::after { inset: 0; }
+.m3-snackbar-close::after { inset: 4px; }
+:is(.m3-snackbar-action, .m3-snackbar-close):is(:hover, [data-state="hover"])::after { opacity: var(--state-hover); }
+:is(.m3-snackbar-action, .m3-snackbar-close):is(:focus-visible, [data-state="focus"])::after { opacity: var(--state-focus); }
+:is(.m3-snackbar-action, .m3-snackbar-close):is(:active, [data-state="pressed"])::after { opacity: var(--state-press); }
+/* 짙은 배경 위 포커스 링 — secondary 대신 반전 역할(inverse-primary)로 대비 확보 */
+:is(.m3-snackbar-action, .m3-snackbar-close)[data-state="focus"], .library-page .m3-snackbar :is(.m3-snackbar-action, .m3-snackbar-close):focus-visible { outline: var(--md-focus-ring-width) solid var(--inverse-primary); outline-offset: var(--md-focus-ring-offset); }
+.m3-snackbar-close[data-state="focus"], .library-page .m3-snackbar .m3-snackbar-close:focus-visible { outline-offset: calc(-1 * var(--md-focus-ring-width)); }
+/* 긴 동작 — 글 아래 줄, 끝 정렬 */
+.m3-snackbar[data-long-action] .m3-snackbar-text { flex-basis: 100%; padding-bottom: 0; }
+.m3-snackbar[data-long-action] .m3-snackbar-action { margin-inline-start: auto; margin-block: 2px 4px; }
+/* 나타남 · 사라짐 */
+.m3-snackbar[data-show] { animation: m3-snackbar-in var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial) both; }
+.m3-snackbar[data-leaving] { animation: m3-snackbar-out var(--md-motion-spring-expressive-fast-effects-duration) var(--md-easing-standard-accelerate) both; }
+@keyframes m3-snackbar-in { from { opacity: 0; scale: 0.8; } }
+@keyframes m3-snackbar-out { to { opacity: 0; scale: 0.8; } }
+/* 페이지 전역 스낵바(다른 견본이 부름) — 화면 아래 시작 쪽 */
+
+/* 견본 · 데모 */
+.m3-snackbar-frame { position: relative; flex: none; box-sizing: border-box; width: 600px; height: 280px; overflow: hidden; border: 1px solid var(--outline-variant); border-radius: var(--md-shape-md); background: var(--bg); padding: 16px; }
+.m3-snackbar-frame .m3-snackbar-host { position: absolute; inset-inline: 16px; bottom: 16px; display: flex; justify-content: flex-start; pointer-events: none; }
+.m3-snackbar-frame .m3-snackbar-host > .m3-snackbar { pointer-events: auto; }
+.m3-snackbar-frame-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.m3-snackbar-frame.m3-snackbar-frame .m3-snackbar-frame-result { margin: 12px 0 0; font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); color: var(--on-surface-variant); }
+.m3-snackbar-table td { min-width: 120px; }
+.m3-snackbar-table .m3-snackbar { box-shadow: none; padding: 4px; min-height: 0; }
+@media (prefers-reduced-motion: reduce) { .m3-snackbar[data-show], .m3-snackbar[data-leaving] { animation: none; } .m3-snackbar-action::after, .m3-snackbar-close::after { transition: none; } }
+@media (forced-colors: active) { .m3-snackbar { border: 1px solid CanvasText; } }
+.m3-snackbar-fit { width: 420px; }
+.m3-snackbar-fit > .m3-snackbar { width: 100%; }
+
+/* Switch — M3 (명세 4.6.6)
+   ────────────────────────────────────────
+   수치 MDC-Android materialswitch tokens.xml, Compose SwitchTokens · Switch.kt(2026-10-03 확인)
+     트랙 52×32 · 테두리 2 · 모서리 full / 손잡이 비선택 16 · 선택 24 · 아이콘 있으면 24 · 누름 28 / 아이콘 16 / 상태 레이어 40 · 터치 48
+     색 선택: 트랙 primary · 손잡이 on-primary(hover · focus · pressed primary-container) · 아이콘 on-primary-container
+        비선택: 트랙 surface-container-highest · 테두리 outline · 손잡이 outline(hover · focus · pressed on-surface-variant) · 아이콘 surface-container-highest
+        상태 레이어 선택 primary · 비선택 on-surface 8 · 10 · 10
+        비활성: 트랙 12%(선택 on-surface · 비선택 surface-container-highest + 테두리 on-surface) · 손잡이 선택 surface · 비선택 on-surface 38% · 아이콘 38%
+     움직임 손잡이 FastSpatial 스프링 */
+.m3-switch {
+  --sw-track: var(--surface-container-highest); --sw-outline: var(--outline); --sw-handle: var(--outline); --sw-icon: var(--surface-container-highest);
+  --sw-layer: var(--text); --sw-layer-o: 0; --sw-size: 16px; --sw-x: 16px;
+  position: relative; display: inline-block; flex: none; width: 52px; height: 32px; vertical-align: middle;
+}
+.m3-switch-input { position: absolute; z-index: 3; inset: -8px 0; width: 100%; height: calc(100% + 16px); margin: 0; opacity: 0; cursor: pointer; }
+.library-page .m3-switch-input:focus-visible { outline: none; }
+html[data-style] .preview-root .m3-switch .m3-switch-input:disabled { opacity: 0; }
+.m3-switch-track { position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--sw-outline); border-radius: var(--md-shape-full); background: var(--sw-track); transition: background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects), border-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-switch-handle {
+  position: absolute; top: 50%; left: var(--sw-x); width: var(--sw-size); height: var(--sw-size); transform: translate(-50%, -50%);
+  display: grid; place-items: center; border-radius: var(--md-shape-full); background: var(--sw-handle);
+  transition: left var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial),
+              width var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial),
+              height var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial),
+              background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+[dir="rtl"] .m3-switch-handle { left: auto; right: var(--sw-x); transform: translate(50%, -50%); }
+.m3-switch-handle::before { content: ''; position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; transform: translate(-50%, -50%); border-radius: var(--md-shape-full); background: var(--sw-layer); opacity: var(--sw-layer-o); transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-switch-handle > svg { position: relative; width: 16px; height: 16px; fill: var(--sw-icon); stroke: none; }
+html[data-style] .preview-root .m3-switch-handle > svg { fill: var(--sw-icon); stroke: none; }
+.m3-switch-handle > .m3-switch-on, .m3-switch-handle > .m3-switch-off { display: none; }
+.m3-switch[data-icons] .m3-switch-handle > .m3-switch-off { display: block; }
+/* 선택 */
+.m3-switch:is([data-checked="true"], :has(> .m3-switch-input:checked)) {
+  --sw-track: var(--primary); --sw-outline: var(--primary); --sw-handle: var(--on-primary); --sw-icon: var(--on-primary-container);
+  --sw-layer: var(--primary); --sw-size: 24px; --sw-x: 36px;
+}
+.m3-switch[data-icons] { --sw-size: 24px; }
+.m3-switch:is([data-checked="true"], :has(> .m3-switch-input:checked)):is([data-icons], [data-selected-icon]) .m3-switch-handle > .m3-switch-on { display: block; }
+.m3-switch:is([data-checked="true"], :has(> .m3-switch-input:checked)) .m3-switch-handle > .m3-switch-off { display: none; }
+/* 상태 — hover · focus · pressed: 손잡이 색 바뀜, 상태 레이어, 누름은 손잡이 28 */
+.m3-switch:is([data-state="hover"], :hover, :has(> .m3-switch-input:focus-visible), [data-state="focus"], [data-state="pressed"], :has(> .m3-switch-input:active)),
+.m3-switch-field:hover .m3-switch { --sw-handle: var(--on-surface-variant); }
+.m3-switch:is([data-checked="true"], :has(> .m3-switch-input:checked)):is([data-state="hover"], :hover, :has(> .m3-switch-input:focus-visible), [data-state="focus"], [data-state="pressed"], :has(> .m3-switch-input:active)),
+.m3-switch-field:hover .m3-switch:is([data-checked="true"], :has(> .m3-switch-input:checked)) { --sw-handle: var(--primary-container); }
+.m3-switch:is([data-state="hover"], :hover), .m3-switch-field:hover .m3-switch { --sw-layer-o: var(--state-hover); }
+.m3-switch:is([data-state="focus"], :has(> .m3-switch-input:focus-visible)) { --sw-layer-o: var(--state-focus); }
+.m3-switch:is([data-state="pressed"], :has(> .m3-switch-input:active)), .m3-switch-field:active .m3-switch { --sw-layer-o: var(--state-press); --sw-size: 28px; }
+.m3-switch:is([data-state="focus"], :has(> .m3-switch-input:focus-visible)) .m3-switch-track { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+/* 비활성 — 상태 없음 */
+.m3-switch:is([data-disabled="true"], :has(> .m3-switch-input:disabled)) {
+  --sw-track: color-mix(in srgb, var(--surface-container-highest) 12%, transparent); --sw-outline: color-mix(in srgb, var(--text) 12%, transparent);
+  --sw-handle: color-mix(in srgb, var(--text) 38%, transparent) !important; --sw-icon: color-mix(in srgb, var(--surface-container-highest) 38%, transparent);
+  --sw-layer-o: 0 !important; --sw-size: var(--sw-size-rest, 16px) !important;
+}
+.m3-switch[data-icons]:is([data-disabled="true"], :has(> .m3-switch-input:disabled)) { --sw-size-rest: 24px; }
+.m3-switch:is([data-disabled="true"], :has(> .m3-switch-input:disabled)):is([data-checked="true"], :has(> .m3-switch-input:checked)) {
+  --sw-track: color-mix(in srgb, var(--text) 12%, transparent); --sw-outline: transparent;
+  --sw-handle: var(--bg) !important; --sw-icon: color-mix(in srgb, var(--text) 38%, transparent); --sw-size-rest: 24px;
+}
+.m3-switch:has(> .m3-switch-input:disabled) .m3-switch-input { cursor: default; }
+/* 라벨 줄 — 글 앞, 스위치 뒤(M3 Guidelines) */
+.m3-switch-field { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 320px; min-height: 56px; cursor: pointer; }
+.m3-switch-field.m3-switch-field .m3-switch-text { font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); color: var(--text); }
+.m3-switch-field:has(.m3-switch-input:disabled) { cursor: default; }
+.m3-switch-field.m3-switch-field:has(.m3-switch-input:disabled) .m3-switch-text { color: var(--text-disabled); }
+.m3-switch-list { display: flex; flex-direction: column; margin: 0; padding: 0; border: 0; }
+.m3-switch-table td { text-align: center; min-width: 88px; }
+@media (prefers-reduced-motion: reduce) { .m3-switch-handle, .m3-switch-track, .m3-switch-handle::before { transition: none; } }
+@media (forced-colors: active) {
+  .m3-switch-track { forced-color-adjust: none; border-color: CanvasText; background: Canvas; }
+  .m3-switch-handle { forced-color-adjust: none; background: CanvasText; }
+  .m3-switch:has(> .m3-switch-input:checked) .m3-switch-track { background: Highlight; border-color: Highlight; }
+  .m3-switch:has(> .m3-switch-input:checked) .m3-switch-handle { background: HighlightText; }
+}
+.m3-switch + .m3-switch { margin-inline-start: 16px; }
+
+/* ─── Text fields — M3 Filled · Outlined(명세 4.8.1). 치수: 높이 56, 좌우 16(아이콘 12), 아이콘-글 16, 라벨 위 8, 보조 글 위 4 ─── */
+.m3-tf {
+  --tf-start: 16px; --tf-end: 16px;
+  --tf-label-c: var(--on-surface-variant); --tf-input-c: var(--tf-text, var(--text)); --tf-icon-c: var(--on-surface-variant); --tf-trail-c: var(--on-surface-variant);
+  --tf-support-c: var(--on-surface-variant); --tf-line-c: var(--outline); --tf-line-w: 1px; --tf-layer-o: 0; --tf-container: transparent;
+  position: relative; display: inline-flex; flex-direction: column; flex: none; box-sizing: border-box; width: 280px; max-width: 100%;
+  font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking);
+}
+.m3-tf[data-variant="filled"] { --tf-container: var(--surface-container-highest); --tf-input-c: var(--tf-text, var(--text-on-container)); --tf-line-c: var(--on-surface-variant); }
+.m3-tf[data-leading] { --tf-start: 52px; }   /* 12 + 아이콘 24 + 16 */
+.m3-tf[data-trailing] { --tf-end: 52px; }
+.m3-tf-field {
+  position: relative; isolation: isolate; display: flex; align-items: center; gap: 16px; box-sizing: border-box; min-height: 56px;
+  padding-inline: 16px; background: var(--tf-container); border-radius: var(--md-shape-xs); cursor: text;
+  transition: background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-tf[data-variant="filled"] .m3-tf-field { border-radius: var(--md-shape-xs) var(--md-shape-xs) 0 0; }
+.m3-tf[data-leading] .m3-tf-field { padding-inline-start: 12px; }
+.m3-tf[data-trailing] .m3-tf-field { padding-inline-end: 12px; }
+/* 상태 레이어(filled hover · on-surface 8%)와 활성 표시선(filled 아래 선) */
+.m3-tf-field::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--text); opacity: var(--tf-layer-o); pointer-events: none; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-tf[data-variant="filled"] .m3-tf-field::after { content: ''; position: absolute; inset: auto 0 0; height: var(--tf-line-w); background: var(--tf-line-c); pointer-events: none; transition: height var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+/* outlined 테두리 — 라벨이 올라가면 legend 폭만큼 테두리를 끊는다(라벨 좌우 4) */
+.m3-tf-outline { position: absolute; inset: -8px 0 0; z-index: -1; box-sizing: border-box; min-width: 0; margin: 0; padding: 0 11px; border: 1px solid var(--tf-line-c); border-radius: var(--md-shape-xs); pointer-events: none; transition: border-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-tf[data-variant="filled"] .m3-tf-outline { display: none; }
+.m3-tf-outline legend { float: none; width: auto; max-width: 0.01px; height: 16px; padding: 0; overflow: hidden; visibility: hidden; white-space: nowrap; font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); transition: max-width var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial); }
+.m3-tf-outline legend > span { display: inline-block; padding-inline: 4px; }
+.m3-tf-body { position: static; display: flex; align-items: flex-start; flex: 1 1 auto; min-width: 0; align-self: stretch; box-sizing: border-box; padding-block: 16px; }
+.m3-tf[data-variant="filled"]:not([data-no-label]) .m3-tf-body { padding-block: 24px 8px; }   /* 라벨 8 + 16, 아래 8 */
+.m3-tf-label.m3-tf-label {
+  position: absolute; inset-inline-start: var(--tf-start); top: 16px; max-width: calc(100% - var(--tf-start) - var(--tf-end)); margin: 0; overflow: hidden;
+  color: var(--tf-label-c); font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); white-space: nowrap; text-overflow: ellipsis; pointer-events: none;
+  transition: top var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), inset-inline-start var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), font-size var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), line-height var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-tf-input.m3-tf-input {
+  flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: 24px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; outline: none;
+  color: var(--tf-input-c); caret-color: var(--primary); font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); line-height: 24px; white-space: nowrap;
+}
+.m3-tf-input.m3-tf-input::placeholder { color: var(--on-surface-variant); opacity: 0; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+textarea.m3-tf-input.m3-tf-input { display: block; height: 24px; resize: none; overflow: hidden; white-space: pre-wrap; }
+.m3-tf[data-textarea] textarea.m3-tf-input.m3-tf-input { height: 96px; overflow-y: auto; }   /* 텍스트 영역 — 높이 고정, 넘치면 세로 스크롤 */
+.m3-tf:is([data-multiline], [data-textarea]) .m3-tf-field { align-items: flex-start; }
+.m3-tf:is([data-multiline], [data-textarea]) .m3-tf-field > :is(svg, .m3-tf-iconbtn) { margin-block-start: 16px; }
+.m3-tf-affix { flex: none; line-height: 24px; color: var(--on-surface-variant); white-space: nowrap; opacity: 0; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-tf-affix[data-affix="prefix"] { padding-inline-end: 2px; }
+.m3-tf-affix[data-affix="suffix"] { padding-inline-start: 2px; }
+.m3-tf-ph { color: var(--on-surface-variant); }   /* 정적 견본의 자리 표시 글 */
+.m3-tf:is([data-multiline], [data-textarea]) span.m3-tf-input.m3-tf-input { height: auto; min-height: 24px; white-space: normal; }
+.m3-tf[data-textarea] span.m3-tf-input.m3-tf-input { height: 96px; }
+.m3-tf-caret { display: inline-block; width: 2px; height: 20px; margin-inline-start: 1px; vertical-align: -4px; background: var(--primary); }
+.m3-tf svg.icon-symbol,
+html[data-style] .preview-root .m3-tf svg.icon-symbol { width: 24px; height: 24px; flex: none; fill: currentColor; stroke: none; }
+.m3-tf-field > svg.m3-tf-leading { color: var(--tf-icon-c); }
+.m3-tf-field > svg.m3-tf-trailing, .m3-tf-iconbtn { color: var(--tf-trail-c); }
+/* 뒤 아이콘 버튼 — 아이콘은 끝에서 12(버튼 40, 누름 영역 48) */
+.m3-tf-iconbtn {
+  position: relative; isolation: isolate; display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; margin: -8px; padding: 0; border: 0; border-radius: var(--md-shape-full);
+  background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.m3-tf-iconbtn::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: currentColor; opacity: 0; transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-tf-iconbtn::after { content: ''; position: absolute; inset: -4px; }
+.m3-tf-iconbtn:hover::before { opacity: var(--state-hover); }
+.m3-tf-iconbtn:focus-visible::before { opacity: var(--state-focus); }
+.m3-tf-iconbtn:active::before { opacity: var(--state-press); }
+.m3-tf-support { display: flex; gap: 16px; box-sizing: border-box; min-height: 20px; padding: 4px 16px 0; color: var(--tf-support-c); font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); }
+.m3-tf-support:empty { display: none; }
+.m3-tf-counter { flex: none; margin-inline-start: auto; color: var(--on-surface-variant); }
+
+/* 라벨이 올라간 상태 — 내용 있음 · 포커스 */
+.m3-tf:is([data-populated], :focus-within, [data-state="focus"]) .m3-tf-label.m3-tf-label { top: 8px; font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking); }
+.m3-tf[data-variant="outlined"]:is([data-populated], :focus-within, [data-state="focus"]) .m3-tf-label.m3-tf-label { top: -8px; inset-inline-start: 16px; }
+.m3-tf[data-variant="outlined"]:is([data-populated], :focus-within, [data-state="focus"]):not([data-no-label]) .m3-tf-outline legend { max-width: 100%; }
+.m3-tf:is([data-populated], :focus-within, [data-state="focus"]) .m3-tf-affix,
+.m3-tf[data-no-label] .m3-tf-affix { opacity: 1; }
+.m3-tf:is(:focus-within, [data-no-label]) .m3-tf-input.m3-tf-input::placeholder { opacity: 1; }
+
+/* hover — 표시선 · 테두리 on-surface. filled는 상태 레이어 8%, outlined는 라벨이 on-surface */
+.m3-tf:is(:hover, [data-state="hover"]):not(:focus-within, [data-state="focus"], [data-disabled], :has(.m3-tf-input:disabled)) { --tf-line-c: var(--text); }
+.m3-tf[data-variant="filled"]:is(:hover, [data-state="hover"]):not([data-disabled], :has(.m3-tf-input:disabled)) { --tf-layer-o: var(--state-hover); }
+.m3-tf[data-variant="outlined"]:is(:hover, [data-state="hover"]):not(:focus-within, [data-state="focus"], [data-disabled], :has(.m3-tf-input:disabled)) { --tf-label-c: var(--text); }
+/* focus — 2px primary, 라벨 primary(글자로 쓰는 primary 4.1.4) */
+.m3-tf:is(:focus-within, [data-state="focus"]):not([data-readonly]) { --tf-line-c: var(--primary); --tf-line-w: 2px; --tf-label-c: var(--primary-on-bg); }
+.m3-tf[data-variant="outlined"]:is(:focus-within, [data-state="focus"]):not([data-readonly]) .m3-tf-outline { border-width: 2px; padding-inline: 10px; }
+.library-page .m3-tf .m3-tf-input.m3-tf-input:focus-visible { outline: none; }   /* 텍스트 필드의 포커스 표시는 2px primary 선(M3) */
+
+/* error — 선 · 라벨 · 보조 글 · 뒤 아이콘 error, hover는 on-error-container */
+.m3-tf[data-error] { --tf-line-c: var(--error); --tf-label-c: var(--error-on-bg); --tf-support-c: var(--error-on-bg); --tf-trail-c: var(--error); }   /* 글자는 글자용 Error(명세 4.1.8) — 대비 단계를 따른다 */
+.m3-tf[data-error]:is(:hover, [data-state="hover"]):not(:focus-within, [data-state="focus"]) { --tf-line-c: var(--on-error-container); --tf-label-c: var(--error-hover-on-bg); --tf-trail-c: var(--on-error-container); }   /* 라벨만 글자용 — 기본 단계는 on-error-container와 같다(명세 4.1.8) */
+.m3-tf[data-error]:is(:focus-within, [data-state="focus"]) { --tf-line-c: var(--error); --tf-label-c: var(--error-on-bg); }
+.m3-tf[data-error] .m3-tf-input.m3-tf-input { caret-color: var(--error); }
+.m3-tf[data-error] .m3-tf-caret { background: var(--error); }
+
+/* disabled — 내용 on-surface 38%, filled 면 on-surface 4% · 선 38%, outlined 테두리 12%. 포커스 · hover 없음 */
+.m3-tf:is([data-disabled], :has(.m3-tf-input:disabled)) {
+  --tf-label-c: var(--text-disabled); --tf-input-c: var(--text-disabled); --tf-icon-c: var(--text-disabled); --tf-trail-c: var(--text-disabled); --tf-support-c: var(--text-disabled);
+  --tf-line-c: var(--text-disabled-container); --tf-layer-o: 0;
+}
+.m3-tf[data-variant="filled"]:is([data-disabled], :has(.m3-tf-input:disabled)) { --tf-container: color-mix(in srgb, var(--text) 4%, transparent); --tf-line-c: var(--text-disabled); }
+.m3-tf:is([data-disabled], :has(.m3-tf-input:disabled)) :is(.m3-tf-field, .m3-tf-input) { cursor: default; }
+.m3-tf:is([data-disabled], :has(.m3-tf-input:disabled)) .m3-tf-counter { color: var(--text-disabled); }
+.m3-tf-input.m3-tf-input:disabled { opacity: 1; -webkit-text-fill-color: currentColor; }
+
+/* 갤러리 */
+.m3-tf-table td { min-width: 296px; vertical-align: top; }
+.library-page .pl-item .btn-spec-row.m3-tf-row { align-items: flex-start; }
+.m3-tf-form { display: flex; flex-direction: column; gap: 8px; }
+:is(.m3-tf-support > *, .m3-tf-iconbtn)[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .m3-tf, .m3-tf * , .m3-tf *::before, .m3-tf *::after { transition: none !important; } }
+@media (forced-colors: active) { .m3-tf[data-variant="filled"] .m3-tf-field::after { background: CanvasText; } .m3-tf-caret { background: CanvasText; } }
+
+/* ─── Tooltips — M3 Plain · Rich(명세 4.7.3). plain 높이 24 · 좌우 8 · 최대 200 · xs, rich 최대 320 · 위 12 · 좌우 16 · 아래 8 · md · 그림자 2 ─── */
+.m3-tooltip {
+  --tt-scale: 1; position: relative; display: inline-flex; flex-direction: column; flex: none; box-sizing: border-box; z-index: 5;
+  transform-origin: var(--tt-origin, center bottom);
+  transition: transform var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects);
+}
+.m3-tooltip[data-kind="plain"] {
+  justify-content: center; width: max-content; min-width: 40px; min-height: 24px; max-width: 200px; padding: 4px 8px; border-radius: var(--md-shape-xs);
+  background: var(--inverse-surface); color: var(--on-inverse-surface); font: var(--md-type-body-small); letter-spacing: var(--md-type-body-small-tracking);
+}
+.m3-tooltip[data-kind="rich"] {
+  width: max-content; max-width: 320px; padding: 12px 16px 0; border-radius: var(--md-shape-md); background: var(--surface); box-shadow: var(--md-elevation-2); color: var(--on-surface-variant);
+}
+.m3-tooltip.m3-tooltip .m3-tooltip-subhead { margin: 0 0 4px; color: var(--on-surface-variant); font: var(--md-type-title-small); letter-spacing: var(--md-type-title-small-tracking); }
+.m3-tooltip.m3-tooltip .m3-tooltip-text { margin: 0 0 16px; color: var(--on-surface-variant); font: var(--md-type-body-medium); letter-spacing: var(--md-type-body-medium-tracking); }
+.m3-tooltip.m3-tooltip .m3-tooltip-text a { color: var(--primary-on-bg); text-decoration: underline; }
+.m3-tooltip-actions { display: flex; gap: 8px; min-height: 36px; margin: 0 0 8px; align-items: center; }   /* 글 아래 16 · 버튼 줄 최소 36 · 아래 8(Compose) */
+.m3-tooltip-actions .btn-text { --btn-label: var(--primary-on-bg); }
+/* 꼬리(선택) — 16×8, 대상 쪽 가운데 */
+.m3-tooltip[data-caret]::after { content: ''; position: absolute; inset-inline-start: calc(50% - 8px); width: 16px; height: 8px; background: inherit; }
+.m3-tooltip[data-caret][data-side="top"]::after { top: 100%; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.m3-tooltip[data-caret][data-side="bottom"]::after { bottom: 100%; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.m3-tooltip[data-kind="rich"][data-caret]::after { inset-inline-start: 16px; }
+/* 무대 — 데모 · 배치 견본은 무대 안 절대 위치 */
+.m3-tooltip-stage { position: relative; display: flex; align-items: center; gap: 8px; flex: none; box-sizing: border-box; min-width: 320px; padding: 48px 16px; }
+.m3-tooltip-stage[data-tall] { width: 400px; max-width: 100%; min-height: 300px; align-items: flex-start; padding-block: 72px 16px; }
+.m3-tooltip-stage > .m3-tooltip { position: absolute; }
+.m3-tooltip-stage > .m3-tooltip[data-state="closed"] { opacity: 0; transform: scale(0.8); pointer-events: none; }   /* Compose: 0.8 → 1 · 투명 → 불투명 */
+.m3-tooltip-appbar { display: flex; align-items: center; gap: 4px; padding: 8px 4px; border-radius: var(--md-shape-none); background: var(--surface); }
+
+.m3-tooltip-table td { min-width: 120px; }
+.library-page .pl-item .btn-spec-row.m3-tooltip-row-wrap { align-items: flex-start; }
+:is(.m3-tooltip)[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .m3-tooltip { transition: none; } }
+@media (forced-colors: active) { .m3-tooltip { border: 1px solid CanvasText; } }
+
+/* ─── FAB menu — M3 Expressive(명세 4.1.12). 닫기 버튼 56 · full · 아이콘 20 · 메뉴와 8, 항목 56 · 사이 4 · 앞뒤 24 · 아이콘-글 8 · title-medium · 그림자 3 ─── */
+.m3-fab-menu {
+  --fm-item: var(--primary-container); --fm-on-item: var(--on-primary-container);
+  --fm-close: var(--primary); --fm-on-close: var(--on-primary);
+  display: inline-grid; justify-items: end; row-gap: 8px; flex: none;
+}
+.m3-fab-menu[data-color="secondary"] { --fm-item: var(--secondary-container); --fm-on-item: var(--on-secondary-container); --fm-close: var(--secondary); --fm-on-close: var(--on-secondary); }
+.m3-fab-menu[data-color="tertiary"] { --fm-item: var(--tertiary-container); --fm-on-item: var(--on-tertiary-container); --fm-close: var(--tertiary); --fm-on-close: var(--on-tertiary); }
+.m3-fab-menu-items { grid-row: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.m3-fab-menu-box { grid-row: 2; display: flex; align-items: flex-start; justify-content: flex-end; width: var(--fab-size, 56px); height: var(--fab-size, 56px); }
+.m3-fab-menu-box[data-size="m"] { --fab-size: 80px; }
+.m3-fab-menu-box[data-size="l"] { --fab-size: 96px; }
+/* FAB가 닫기 버튼으로 바뀐다 — 크기 56 · full · 색 set의 기본색(primary 등), 아이콘 + → × 20 */
+.m3-fab-menu .m3-fab { --fab-c: var(--fm-item); --fab-o: var(--fm-on-item); transition: min-width var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), height var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), border-radius var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial), background-color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects), color var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects), box-shadow var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-fab-menu[data-open] .m3-fab { --fab-c: var(--fm-close); --fab-o: var(--fm-on-close); --fab-size: 56px; --fab-icon: 20px; --fab-radius: calc(var(--fab-size) / 2); }
+.m3-fab-menu .m3-fab .m3-fab-menu-x { display: none; }
+.m3-fab-menu[data-open] .m3-fab .m3-fab-menu-x { display: block; }
+.m3-fab-menu[data-open] .m3-fab .m3-fab-menu-plus { display: none; }
+/* 항목 — 알약, 내용만큼 폭(고정 폭 · 줄임 금지) */
+.m3-fab-menu-item {
+  --fm-layer: 0; --fm-delay: 0ms;
+  position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;
+  min-width: 56px; height: 56px; margin: 0; padding: 0 24px; border: 0; border-radius: var(--md-shape-full);
+  background: var(--fm-item); color: var(--fm-on-item); box-shadow: var(--md-elevation-3); cursor: pointer; white-space: nowrap;
+  font: var(--md-type-title-medium); letter-spacing: var(--md-type-title-medium-tracking); -webkit-tap-highlight-color: transparent;
+  clip-path: inset(-8px -8px -8px -8px round var(--md-shape-full)); opacity: 1;
+  transition: clip-path var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial) var(--fm-delay), opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects) var(--fm-delay);
+}
+.m3-fab-menu-item::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: currentColor; opacity: var(--fm-layer); transition: opacity var(--md-motion-spring-expressive-fast-effects-duration) var(--md-motion-spring-expressive-fast-effects); }
+.m3-fab-menu-item:is(:hover, [data-state="hover"]) { --fm-layer: var(--state-hover); }
+.m3-fab-menu-item:is(:focus-visible, [data-state="focus"]) { --fm-layer: var(--state-focus); }
+.m3-fab-menu-item:is(:active, [data-state="pressed"]) { --fm-layer: var(--state-press); }
+.m3-fab-menu-item[data-state="focus"] { outline: var(--md-focus-ring-width) solid var(--md-focus-ring-color); outline-offset: var(--md-focus-ring-offset); }
+.m3-fab-menu-item svg.icon-symbol,
+html[data-style] .preview-root .m3-fab-menu-item svg.icon-symbol { width: 24px; height: 24px; flex: none; fill: currentColor; stroke: none; }
+/* 닫힌 메뉴 — 항목은 끝에서 접혀 숨는다(Compose 폭 0 → 1 · 투명도). 열 때 FAB에 가까운 항목부터 */
+.m3-fab-menu:not([data-open]) .m3-fab-menu-items { pointer-events: none; }
+.m3-fab-menu:not([data-open]) .m3-fab-menu-item { clip-path: inset(0 0 0 100% round var(--md-shape-full)); opacity: 0; box-shadow: none; }
+/* 견본 · 데모 틀 */
+.m3-fab-menu-stage { position: relative; flex: none; box-sizing: border-box; width: 360px; height: 480px; overflow: hidden; border-radius: var(--md-shape-md); background: var(--bg); box-shadow: inset 0 0 0 1px var(--outline-variant); }
+.m3-fab-menu-stage[data-short] { height: auto; min-height: 0; padding: 16px; display: flex; justify-content: flex-end; box-shadow: none; background: transparent; width: auto; }
+.m3-fab-menu-stage > .m3-fab-menu, .m3-fab-menu-stage > .m3-fab-web { position: absolute; inset-inline-end: 16px; bottom: 16px; }
+.m3-fab-menu-stage[data-short] > .m3-fab-menu { position: static; }
+.m3-fab-menu-content { margin: 0; padding: 16px; list-style: none; }
+.m3-fab-menu-content.m3-fab-menu-content li { padding: 12px 0; border-bottom: 1px solid var(--outline-variant); color: var(--text); font: var(--md-type-body-large); letter-spacing: var(--md-type-body-large-tracking); }
+.m3-fab-menu-table td { min-width: 120px; }
+.m3-fab-menu-table .m3-fab-menu-item { clip-path: none; }
+.library-page .pl-item .btn-spec-row.m3-fab-menu-row { align-items: flex-end; }
+:is(.m3-fab-menu-stage > [hidden], .m3-fab-web[hidden]) { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .m3-fab-menu .m3-fab, .m3-fab-menu-item { transition: none; } }
+@media (forced-colors: active) { .m3-fab-menu-item { border: 1px solid CanvasText; } }
+.m3-fab-web-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }   /* 웹: FAB 위로 메뉴, 사이 4(M3 FAB menu Specs) */
+.m3-fab-menu-stage[data-short] .m3-fab-menu:not([data-open]) .m3-fab-menu-items { display: none; }   /* 닫힌 견본은 항목 자리를 비우지 않는다 */
+
+/* 메뉴가 붙은 텍스트 필드(Exposed dropdown · 자동 완성, 명세 4.8.1) — 메뉴는 필드(보조 글 포함) 아래 · 필드 폭(Compose menuAnchor), 화살표는 펼치면 180° */
+.m3-tf-menu.m3-tf-menu { position: absolute; inset-inline: 0; top: 100%; z-index: 6; width: auto; min-width: 0; max-width: none; }
+.m3-tf-menu[aria-hidden="true"] { position: relative; top: auto; }   /* 정적 견본은 흐름 안에 */
+.m3-tf-menu .m3-menu-group { max-height: 240px; overflow-y: auto; }
+.m3-tf .m3-tf-dropicon { transition: transform var(--md-motion-spring-expressive-fast-spatial-duration) var(--md-motion-spring-expressive-fast-spatial); }
+.m3-tf[data-expanded] .m3-tf-dropicon { transform: rotate(180deg); }
+.m3-tf[data-combo="select"] :is(.m3-tf-field, .m3-tf-input.m3-tf-input) { cursor: pointer; }
+:is(.m3-tf-menu, .m3-tf-menu [role="option"])[hidden] { display: none !important; }
+/* 날짜 선택기의 입력 칸 — Text fields(4.8.1) outlined를 그대로 쓴다(옛 .m3-dp-field 대체, 2026-10-04). 대화상자 면 위 입력 글자는 --dp-fg */
+.m3-dp-inputbody .m3-tf, .m3-dp-docked-wrap .m3-tf { width: 100%; }
+.m3-dp-inputbody .m3-tf { --tf-text: var(--dp-fg); }
